@@ -110,6 +110,30 @@ class _GamePageState extends State<GamePage> {
     return match.isEmpty ? null : match.first.card;
   }
 
+  /// Shows every card in the current trick together in the middle of the
+  /// table. The cards are kept in seat order so their positions do not jump.
+  Widget _centerTrick() {
+    final cards = <Widget>[];
+    for (var seat = 0; seat < BlackQueenGame.seats; seat++) {
+      final card = _cardAt(seat);
+      if (card == null) continue;
+      cards.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: CardView(card: card, width: 52, height: 74),
+      ));
+    }
+
+    if (cards.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: cards,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final canPlay = !busy && game.currentSeat == 0 && !game.dealOver;
@@ -134,118 +158,113 @@ class _GamePageState extends State<GamePage> {
             ),
           ),
           child: Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 3),
-              child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
-                  style: TextStyle(color: Colors.white54, fontSize: 11)),
-            ),
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: SeatMarker(
-                        name: seatName(2),
-                        isBot: true,
-                        score: game.scores[2],
-                        active: game.currentSeat == 2 && !game.dealOver,
-                        playedCard: _cardAt(2),
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 3),
+                child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
+                    style: TextStyle(color: Colors.white54, fontSize: 11)),
+              ),
+              Expanded(
+                child: Stack(
+                  children: [
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: SeatMarker(
+                          name: seatName(2),
+                          isBot: true,
+                          score: game.scores[2],
+                          active: game.currentSeat == 2 && !game.dealOver,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: SeatMarker(
-                        name: seatName(1),
-                        isBot: true,
-                        score: game.scores[1],
-                        active: game.currentSeat == 1 && !game.dealOver,
-                        playedCard: _cardAt(1),
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: SeatMarker(
+                          name: seatName(1),
+                          isBot: true,
+                          score: game.scores[1],
+                          active: game.currentSeat == 1 && !game.dealOver,
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: SeatMarker(
-                        name: seatName(3),
-                        isBot: true,
-                        score: game.scores[3],
-                        active: game.currentSeat == 3 && !game.dealOver,
-                        playedCard: _cardAt(3),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: SeatMarker(
+                          name: seatName(3),
+                          isBot: true,
+                          score: game.scores[3],
+                          active: game.currentSeat == 3 && !game.dealOver,
+                        ),
                       ),
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 90),
+                    Align(
+                      alignment: Alignment.center,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 90),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _centerTrick(),
+                            if (table.isNotEmpty) const SizedBox(height: 6),
+                            Text(message,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      left: 90,
+                      right: 90,
+                      bottom: 0,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (_cardAt(0) != null) ...[
-                            CardView(card: _cardAt(0)!, width: 44, height: 62),
-                            const SizedBox(height: 6),
-                          ],
-                          Text(message,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                          Text('You: ${game.scores[0]}  •  $status',
+                              style: const TextStyle(color: Colors.white, fontSize: 13)),
+                          const SizedBox(height: 4),
+                          SizedBox(
+                            height: 78,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: [
+                                  for (final card in game.hands[0])
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 2),
+                                      child: CardView(
+                                        card: card,
+                                        dimmed: canPlay && !legal.contains(card),
+                                        onTap: () => _onTapCard(card),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (game.dealOver && !busy)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4, bottom: 4),
+                              child: FilledButton(onPressed: _startDeal, child: const Text('Next deal')),
+                            ),
                         ],
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 90,
-                    right: 90,
-                    bottom: 0,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('You: ${game.scores[0]}  •  $status',
-                            style: const TextStyle(color: Colors.white, fontSize: 13)),
-                        const SizedBox(height: 4),
-                        SizedBox(
-                          height: 78,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                for (final card in game.hands[0])
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 2),
-                                    child: CardView(
-                                      card: card,
-                                      dimmed: canPlay && !legal.contains(card),
-                                      onTap: () => _onTapCard(card),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        if (game.dealOver && !busy)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4, bottom: 4),
-                            child: FilledButton(onPressed: _startDeal, child: const Text('Next deal')),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
         ),
       ),
     );
