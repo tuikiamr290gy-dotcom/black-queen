@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'card_view.dart';
 import 'game_logic.dart';
-import 'main.dart' show CardView, GamePage;
+import 'main.dart' show GamePage;
 import 'network.dart';
 
 class HomePage extends StatelessWidget {
@@ -66,6 +67,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
           mySeat: 0,
           link: host.selfLink(),
           initialNames: seats.map((s) => s.name).toList(),
+          initialIsBot: seats.map((s) => s.isBot).toList(),
         ),
       ),
     );
@@ -98,6 +100,7 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
               for (final s in seats)
                 ListTile(
                   tileColor: Colors.white10,
+                  leading: Icon(s.isBot ? Icons.smart_toy : Icons.person, color: Colors.white),
                   title: Text(s.name, style: const TextStyle(color: Colors.white)),
                   trailing: Text(s.isBot ? 'Bot' : 'Player', style: const TextStyle(color: Colors.amber)),
                 ),
@@ -146,6 +149,7 @@ class _JoinPageState extends State<JoinPage> {
         break;
       case 'deal_start':
         final names = (event['names'] as List).map((e) => e as String).toList();
+        final isBot = (event['isBot'] as List).map((e) => e as bool).toList();
         if (mySeat != null) {
           Navigator.pushReplacement(
             context,
@@ -154,6 +158,7 @@ class _JoinPageState extends State<JoinPage> {
                 mySeat: mySeat!,
                 link: client!,
                 initialNames: names,
+                initialIsBot: isBot,
                 // Replay everything received so far, in case the very
                 // next message (like our own hand of cards) arrives
                 // before this screen finishes being built.
@@ -211,6 +216,7 @@ class NetworkGamePage extends StatefulWidget {
   final int mySeat;
   final GameLink link;
   final List<String> initialNames;
+  final List<bool> initialIsBot;
   final List<Map<String, dynamic>> initialEvents;
 
   const NetworkGamePage({
@@ -218,6 +224,7 @@ class NetworkGamePage extends StatefulWidget {
     required this.mySeat,
     required this.link,
     required this.initialNames,
+    required this.initialIsBot,
     this.initialEvents = const [],
   });
 
@@ -227,6 +234,7 @@ class NetworkGamePage extends StatefulWidget {
 
 class _NetworkGamePageState extends State<NetworkGamePage> {
   late List<String> names = widget.initialNames;
+  late List<bool> isBot = widget.initialIsBot;
   List<PlayingCard> myHand = [];
   List<MapEntry<int, PlayingCard>> table = [];
   List<int> scores = [0, 0, 0, 0];
@@ -269,6 +277,8 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
         setState(() {
           dealNumber = event['dealNumber'] as int;
           currentSeat = event['currentSeat'] as int;
+          names = (event['names'] as List).map((e) => e as String).toList();
+          isBot = (event['isBot'] as List).map((e) => e as bool).toList();
           table = [];
           dealOver = false;
           message = '';
@@ -351,15 +361,20 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
                     Expanded(
                       child: Container(
                         margin: const EdgeInsets.all(3),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         decoration: BoxDecoration(
-                          color: currentSeat == i && !dealOver ? Colors.amber : Colors.white24,
+                          color: currentSeat == i && !dealOver ? Colors.amber.withOpacity(0.3) : Colors.white12,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Column(
                           children: [
-                            Text(_displayName(i), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('${scores[i]}', style: const TextStyle(fontSize: 22)),
+                            PlayerBadge(
+                              name: _displayName(i),
+                              isBot: isBot[i],
+                              active: currentSeat == i && !dealOver,
+                            ),
+                            const SizedBox(height: 2),
+                            Text('${scores[i]}', style: const TextStyle(fontSize: 20, color: Colors.white)),
                           ],
                         ),
                       ),
@@ -376,13 +391,17 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
                   for (var seat = 0; seat < 4; seat++)
                     Column(
                       children: [
-                        Text(_displayName(seat), style: const TextStyle(color: Colors.white70)),
+                        PlayerBadge(
+                          name: _displayName(seat),
+                          isBot: isBot[seat],
+                          active: currentSeat == seat && !dealOver,
+                        ),
                         const SizedBox(height: 4),
                         SizedBox(
-                          height: 68,
+                          height: 74,
                           child: table.any((e) => e.key == seat)
                               ? CardView(card: table.firstWhere((e) => e.key == seat).value)
-                              : const SizedBox(width: 48),
+                              : const SizedBox(width: 52),
                         ),
                       ],
                     ),
