@@ -145,6 +145,7 @@ class HostServer {
       'dealNumber': game.dealNumber,
       'currentSeat': game.currentSeat,
       'names': seats.map((s) => s.name).toList(),
+      'isBot': seats.map((s) => s.isBot).toList(),
     });
     for (var seat = 0; seat < 4; seat++) {
       _sendTo(seat, {'type': 'hand', 'hand': game.hands[seat].map(cardMsg).toList()});
