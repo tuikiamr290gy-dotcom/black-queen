@@ -125,7 +125,15 @@ class _GamePageState extends State<GamePage> {
       backgroundColor: Colors.green.shade900,
       appBar: AppBar(title: Text('Black Queen  •  Deal ${game.dealNumber}'), toolbarHeight: 40),
       body: SafeArea(
-        child: Column(
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment.center,
+              radius: 1.1,
+              colors: [Color(0xFF1F6B2B), Color(0xFF0C3315)],
+            ),
+          ),
+          child: Column(
           children: [
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 3),
@@ -237,6 +245,7 @@ class _GamePageState extends State<GamePage> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );
