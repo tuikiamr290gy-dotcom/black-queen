@@ -12,6 +12,7 @@ void main() {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.fullScreen);
   runApp(const BlackQueenApp());
 }
 
@@ -44,6 +45,7 @@ class _GamePageState extends State<GamePage> {
   List<PlayedCard> table = [];
   String message = '';
   bool busy = false;
+  bool gameOver = false;
 
   @override
   void initState() {
@@ -91,10 +93,19 @@ class _GamePageState extends State<GamePage> {
     });
     await Future.delayed(const Duration(milliseconds: 1600));
     if (!mounted) return;
-    setState(() {
-      table = [];
-      message = game.dealOver ? 'Deal finished!' : '';
-    });
+    
+    if (game.dealOver) {
+      setState(() {
+        table = [];
+        message = 'Deal finished!';
+        gameOver = true;
+      });
+    } else {
+      setState(() {
+        table = [];
+        message = '';
+      });
+    }
   }
 
   Future<void> _onTapCard(PlayingCard card) async {
@@ -134,6 +145,95 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  /// Shows the final scoreboard when the deal is over.
+  Widget _scoreboardOverlay() {
+    if (!gameOver) return const SizedBox.shrink();
+
+    final scores = game.scores;
+    final players = [
+      (name: 'You', score: scores[0]),
+      (name: 'Bot 1', score: scores[1]),
+      (name: 'Bot 2', score: scores[2]),
+      (name: 'Bot 3', score: scores[3]),
+    ];
+
+    // Sort by score (lowest first = best)
+    players.sort((a, b) => a.score.compareTo(b.score));
+
+    return Dialog(
+      backgroundColor: Colors.green.shade900,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.1,
+            colors: [Color(0xFF1F6B2B), Color(0xFF0C3315)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'DEAL FINISHED',
+              style: TextStyle(
+                color: Colors.amber,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ...List.generate(players.length, (index) {
+              final player = players[index];
+              final medal = index == 0 ? '🥇' : index == 1 ? '🥈' : index == 2 ? '🥉' : '  ';
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      medal,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '${player.name}:',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Text(
+                      '${player.score} points',
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () {
+                setState(() {
+                  gameOver = false;
+                });
+                _startDeal();
+              },
+              child: const Text('Next Deal'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final canPlay = !busy && game.currentSeat == 0 && !game.dealOver;
@@ -142,129 +242,127 @@ class _GamePageState extends State<GamePage> {
     final status = game.dealOver
         ? 'All cards are finished'
         : canPlay
-            ? 'Your turn'
-            : '${seatName(game.currentSeat)} is playing...';
+            ? 'YOUR TURN'
+            : '${seatName(game.currentSeat).toUpperCase()} IS PLAYING...';
 
     return Scaffold(
       backgroundColor: Colors.green.shade900,
-      appBar: AppBar(title: Text('Black Queen  •  Deal ${game.dealNumber}'), toolbarHeight: 40),
-      body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 1.1,
-              colors: [Color(0xFF1F6B2B), Color(0xFF0C3315)],
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment.center,
+            radius: 1.1,
+            colors: [Color(0xFF1F6B2B), Color(0xFF0C3315)],
           ),
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 3),
-                child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
-                    style: TextStyle(color: Colors.white54, fontSize: 11)),
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: SeatMarker(
-                          name: seatName(2),
-                          isBot: true,
-                          score: game.scores[2],
-                          active: game.currentSeat == 2 && !game.dealOver,
+        ),
+        child: Stack(
+          children: [
+            Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
+                      style: TextStyle(color: Colors.white54, fontSize: 12)),
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: SeatMarker(
+                            name: seatName(2).toUpperCase(),
+                            isBot: true,
+                            score: game.scores[2],
+                            active: game.currentSeat == 2 && !game.dealOver,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: SeatMarker(
-                          name: seatName(1),
-                          isBot: true,
-                          score: game.scores[1],
-                          active: game.currentSeat == 1 && !game.dealOver,
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: SeatMarker(
+                            name: seatName(1).toUpperCase(),
+                            isBot: true,
+                            score: game.scores[1],
+                            active: game.currentSeat == 1 && !game.dealOver,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: SeatMarker(
-                          name: seatName(3),
-                          isBot: true,
-                          score: game.scores[3],
-                          active: game.currentSeat == 3 && !game.dealOver,
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        child: Center(
+                          child: SeatMarker(
+                            name: seatName(3).toUpperCase(),
+                            isBot: true,
+                            score: game.scores[3],
+                            active: game.currentSeat == 3 && !game.dealOver,
+                          ),
                         ),
                       ),
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 90),
+                      Align(
+                        alignment: Alignment.center,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 90),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _centerTrick(),
+                              if (table.isNotEmpty) const SizedBox(height: 6),
+                              Text(message,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 90,
+                        right: 90,
+                        bottom: 0,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _centerTrick(),
-                            if (table.isNotEmpty) const SizedBox(height: 6),
-                            Text(message,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                    color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                            Text('YOU: ${game.scores[0]} POINTS  •  $status',
+                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              height: 78,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    for (final card in game.hands[0])
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 2),
+                                        child: CardView(
+                                          card: card,
+                                          dimmed: canPlay && !legal.contains(card),
+                                          onTap: () => _onTapCard(card),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
                           ],
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 90,
-                      right: 90,
-                      bottom: 0,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('You: ${game.scores[0]}  •  $status',
-                              style: const TextStyle(color: Colors.white, fontSize: 13)),
-                          const SizedBox(height: 4),
-                          SizedBox(
-                            height: 78,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: [
-                                  for (final card in game.hands[0])
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 2),
-                                      child: CardView(
-                                        card: card,
-                                        dimmed: canPlay && !legal.contains(card),
-                                        onTap: () => _onTapCard(card),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (game.dealOver && !busy)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4, bottom: 4),
-                              child: FilledButton(onPressed: _startDeal, child: const Text('Next deal')),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+            if (gameOver) _scoreboardOverlay(),
+          ],
         ),
       ),
     );
