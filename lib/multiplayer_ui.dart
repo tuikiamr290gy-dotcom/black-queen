@@ -150,7 +150,15 @@ class _JoinPageState extends State<JoinPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (_) => NetworkGamePage(mySeat: mySeat!, link: client!, initialNames: names),
+              builder: (_) => NetworkGamePage(
+                mySeat: mySeat!,
+                link: client!,
+                initialNames: names,
+                // Replay everything received so far, in case the very
+                // next message (like our own hand of cards) arrives
+                // before this screen finishes being built.
+                initialEvents: List<Map<String, dynamic>>.from(client!.log),
+              ),
             ),
           );
         }
@@ -203,8 +211,15 @@ class NetworkGamePage extends StatefulWidget {
   final int mySeat;
   final GameLink link;
   final List<String> initialNames;
+  final List<Map<String, dynamic>> initialEvents;
 
-  const NetworkGamePage({super.key, required this.mySeat, required this.link, required this.initialNames});
+  const NetworkGamePage({
+    super.key,
+    required this.mySeat,
+    required this.link,
+    required this.initialNames,
+    this.initialEvents = const [],
+  });
 
   @override
   State<NetworkGamePage> createState() => _NetworkGamePageState();
@@ -223,8 +238,16 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
   @override
   void initState() {
     super.initState();
+    // Catch up on anything that arrived before this screen was ready.
+    for (final event in widget.initialEvents) {
+      _onEvent(event);
+    }
     widget.link.events.listen(_onEvent);
   }
+
+  /// What to call a seat on this phone's screen: "You" for this phone's
+  /// own seat, and its real name for everyone else.
+  String _displayName(int seat) => seat == widget.mySeat ? 'You' : names[seat];
 
   void _removePlayedFromHand(List trick) {
     for (final p in trick) {
@@ -274,7 +297,7 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
             scores = (event['scores'] as List).map((e) => e as int).toList();
             currentSeat = event['currentSeat'] as int;
             dealOver = event['dealOver'] as bool;
-            message = '${names[event['winner'] as int]} won the round (+${event['points']} points)';
+            message = '${_displayName(event['winner'] as int)} won the round (+${event['points']} points)';
           });
           Future.delayed(const Duration(milliseconds: 1600), () {
             if (!mounted) return;
@@ -308,8 +331,11 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
   @override
   Widget build(BuildContext context) {
     final canPlay = currentSeat == widget.mySeat && !dealOver;
-    final status =
-        dealOver ? 'All cards are finished' : canPlay ? 'Your turn' : '${names[currentSeat]} is playing...';
+    final status = dealOver
+        ? 'All cards are finished'
+        : canPlay
+            ? 'Your turn'
+            : '${_displayName(currentSeat)} is playing...';
 
     return Scaffold(
       backgroundColor: Colors.green.shade900,
@@ -332,7 +358,7 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
                         ),
                         child: Column(
                           children: [
-                            Text(names[i], style: const TextStyle(fontWeight: FontWeight.bold)),
+                            Text(_displayName(i), style: const TextStyle(fontWeight: FontWeight.bold)),
                             Text('${scores[i]}', style: const TextStyle(fontSize: 22)),
                           ],
                         ),
@@ -350,7 +376,7 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
                   for (var seat = 0; seat < 4; seat++)
                     Column(
                       children: [
-                        Text(names[seat], style: const TextStyle(color: Colors.white70)),
+                        Text(_displayName(seat), style: const TextStyle(color: Colors.white70)),
                         const SizedBox(height: 4),
                         SizedBox(
                           height: 68,
