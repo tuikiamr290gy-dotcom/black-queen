@@ -13,53 +13,88 @@ class _Pip {
   final double dx;
   final double dy;
   final bool flipped;
-  const _Pip(this.dx, this.dy, {this.flipped = false});
-}
+  const Map<int, List<_Pip>> _pipLayouts = {
+  2: [
+    _Pip(0.50, 0.20),
+    _Pip(0.50, 0.80, flipped: true),
+  ],
 
-const Map<int, List<_Pip>> _pipLayouts = {
-  2: [_Pip(0.5, 0.22), _Pip(0.5, 0.78, flipped: true)],
-  3: [_Pip(0.5, 0.2), _Pip(0.5, 0.5), _Pip(0.5, 0.8, flipped: true)],
+  3: [
+    _Pip(0.50, 0.18),
+    _Pip(0.50, 0.50),
+    _Pip(0.50, 0.82, flipped: true),
+  ],
+
   4: [
-    _Pip(0.28, 0.22), _Pip(0.72, 0.22),
-    _Pip(0.28, 0.78, flipped: true), _Pip(0.72, 0.78, flipped: true),
+    _Pip(0.30, 0.25),
+    _Pip(0.70, 0.25),
+    _Pip(0.30, 0.75, flipped: true),
+    _Pip(0.70, 0.75, flipped: true),
   ],
+
   5: [
-    _Pip(0.28, 0.22), _Pip(0.72, 0.22),
-    _Pip(0.5, 0.5),
-    _Pip(0.28, 0.78, flipped: true), _Pip(0.72, 0.78, flipped: true),
+    _Pip(0.30, 0.23),
+    _Pip(0.70, 0.23),
+    _Pip(0.50, 0.50),
+    _Pip(0.30, 0.77, flipped: true),
+    _Pip(0.70, 0.77, flipped: true),
   ],
+
   6: [
-    _Pip(0.28, 0.2), _Pip(0.72, 0.2),
-    _Pip(0.28, 0.5), _Pip(0.72, 0.5),
-    _Pip(0.28, 0.8, flipped: true), _Pip(0.72, 0.8, flipped: true),
+    _Pip(0.30, 0.20),
+    _Pip(0.70, 0.20),
+    _Pip(0.30, 0.50),
+    _Pip(0.70, 0.50),
+    _Pip(0.30, 0.80, flipped: true),
+    _Pip(0.70, 0.80, flipped: true),
   ],
+
   7: [
-    _Pip(0.28, 0.18), _Pip(0.72, 0.18),
-    _Pip(0.5, 0.34),
-    _Pip(0.28, 0.5), _Pip(0.72, 0.5),
-    _Pip(0.28, 0.82, flipped: true), _Pip(0.72, 0.82, flipped: true),
+    _Pip(0.30, 0.16),
+    _Pip(0.70, 0.16),
+    _Pip(0.50, 0.34),
+    _Pip(0.30, 0.50),
+    _Pip(0.70, 0.50),
+    _Pip(0.30, 0.84, flipped: true),
+    _Pip(0.70, 0.84, flipped: true),
   ],
+
   8: [
-    _Pip(0.28, 0.16), _Pip(0.72, 0.16),
-    _Pip(0.5, 0.32),
-    _Pip(0.28, 0.5), _Pip(0.72, 0.5),
-    _Pip(0.5, 0.68, flipped: true),
-    _Pip(0.28, 0.84, flipped: true), _Pip(0.72, 0.84, flipped: true),
+    _Pip(0.30, 0.14),
+    _Pip(0.70, 0.14),
+    _Pip(0.50, 0.29),
+    _Pip(0.30, 0.43),
+    _Pip(0.70, 0.43),
+    _Pip(0.30, 0.57, flipped: true),
+    _Pip(0.70, 0.57, flipped: true),
+    _Pip(0.50, 0.71, flipped: true),
+    _Pip(0.30, 0.86, flipped: true),
+    _Pip(0.70, 0.86, flipped: true),
   ],
+
   9: [
-    _Pip(0.28, 0.14), _Pip(0.72, 0.14),
-    _Pip(0.28, 0.36), _Pip(0.72, 0.36),
-    _Pip(0.5, 0.5),
-    _Pip(0.28, 0.64, flipped: true), _Pip(0.72, 0.64, flipped: true),
-    _Pip(0.28, 0.86, flipped: true), _Pip(0.72, 0.86, flipped: true),
+    _Pip(0.30, 0.13),
+    _Pip(0.70, 0.13),
+    _Pip(0.30, 0.32),
+    _Pip(0.70, 0.32),
+    _Pip(0.50, 0.50),
+    _Pip(0.30, 0.68, flipped: true),
+    _Pip(0.70, 0.68, flipped: true),
+    _Pip(0.30, 0.87, flipped: true),
+    _Pip(0.70, 0.87, flipped: true),
   ],
+
   10: [
-    _Pip(0.28, 0.12), _Pip(0.72, 0.12),
-    _Pip(0.5, 0.24),
-    _Pip(0.28, 0.38), _Pip(0.72, 0.38),
-    _Pip(0.28, 0.62, flipped: true), _Pip(0.72, 0.62, flipped: true),
-    _Pip(0.5, 0.76, flipped: true),
-    _Pip(0.28, 0.88, flipped: true), _Pip(0.72, 0.88, flipped: true),
+    _Pip(0.30, 0.11),
+    _Pip(0.70, 0.11),
+    _Pip(0.50, 0.22),
+    _Pip(0.30, 0.34),
+    _Pip(0.70, 0.34),
+    _Pip(0.30, 0.66, flipped: true),
+    _Pip(0.70, 0.66, flipped: true),
+    _Pip(0.50, 0.78, flipped: true),
+    _Pip(0.30, 0.89, flipped: true),
+    _Pip(0.70, 0.89, flipped: true),
   ],
 };
 
