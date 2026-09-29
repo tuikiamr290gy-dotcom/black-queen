@@ -101,13 +101,17 @@ class CardView extends StatelessWidget {
           width: width,
           height: height,
           decoration: BoxDecoration(
-            color: Colors.white,
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Color(0xFFF3F1EA)],
+            ),
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: card.isBlackQueen ? Colors.amber.shade700 : Colors.black26,
               width: card.isBlackQueen ? 2.5 : 1,
             ),
-            boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 2, offset: Offset(1, 1))],
+            boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 3, offset: Offset(1, 2))],
           ),
           child: Stack(
             children: [
