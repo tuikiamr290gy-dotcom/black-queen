@@ -686,4 +686,331 @@ class _GamePageState extends State<GamePage> {
                                         3,
                                         cardWidth *
                                             .92,
-                                        cardHeight
+                                        cardHeight *
+                                            .92,
+                                      ),
+                                    ),
+
+                                    // PLAYER
+                                    Positioned(
+                                      bottom: 2,
+                                      child:
+                                          _playedCard(
+                                        0,
+                                        cardWidth *
+                                            .92,
+                                        cardHeight *
+                                            .92,
+                                      ),
+                                    ),
+
+                                    if (table.isEmpty &&
+                                        !game.dealOver)
+                                      const Column(
+                                        mainAxisSize:
+                                            MainAxisSize
+                                                .min,
+                                        children: [
+                                          Icon(
+                                            Icons
+                                                .style_rounded,
+                                            size: 32,
+                                            color:
+                                                Colors
+                                                    .white12,
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text(
+                                            'PLAY AREA',
+                                            style:
+                                                TextStyle(
+                                              color:
+                                                  Colors
+                                                      .white24,
+                                              letterSpacing:
+                                                  2,
+                                              fontSize:
+                                                  11,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            // ==================================================
+                            // SCORE RULE
+                            // ==================================================
+
+                            Positioned(
+                              top: 9,
+                              right: 14,
+                              child:
+                                  _ScoreStrip(
+                                game: game,
+                              ),
+                            ),
+
+                            // ==================================================
+                            // PLAYER HAND
+                            // ==================================================
+
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              child: Column(
+                                children: [
+
+                                  _StatusPill(
+                                    text:
+                                        message
+                                                .isNotEmpty
+                                            ? message
+                                            : game.dealOver
+                                                ? 'Deal finished'
+                                                : canPlay
+                                                    ? 'YOUR TURN • Choose a card'
+                                                    : '${seatName(game.currentSeat)} is playing',
+                                    highlight:
+                                        message
+                                                .isNotEmpty ||
+                                            canPlay,
+                                  ),
+
+                                  const SizedBox(
+                                    height: 5,
+                                  ),
+
+                                  _PlayerBadge(
+                                    name: 'You',
+                                    score:
+                                        game.scores[0],
+                                    active:
+                                        canPlay &&
+                                            !game.dealOver,
+                                    you: true,
+                                  ),
+
+                                  const SizedBox(
+                                    height: 6,
+                                  ),
+
+                                  SizedBox(
+                                    height:
+                                        cardHeight + 8,
+                                    child:
+                                        ListView.builder(
+                                      scrollDirection:
+                                          Axis.horizontal,
+                                      shrinkWrap: true,
+                                      padding:
+                                          const EdgeInsets
+                                              .symmetric(
+                                        horizontal: 10,
+                                      ),
+                                      itemCount:
+                                          game.hands[0]
+                                              .length,
+                                      itemBuilder:
+                                          (
+                                        context,
+                                        index,
+                                      ) {
+                                        final card =
+                                            game.hands[
+                                                    0]
+                                                [index];
+
+                                        return CardView(
+                                          card: card,
+                                          width:
+                                              cardWidth,
+                                          height:
+                                              cardHeight,
+                                          dimmed: canPlay &&
+                                              !legal.contains(
+                                                card,
+                                              ),
+                                          onTap: () =>
+                                              _onTapCard(
+                                            card,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  // ==================================================
+                                  // NEXT DEAL
+                                  // ==================================================
+
+                                  if (game.dealOver &&
+                                      !busy)
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets
+                                              .only(
+                                        bottom: 3,
+                                      ),
+                                      child:
+                                          FilledButton.icon(
+                                        onPressed:
+                                            _startDeal,
+                                        icon: const Icon(
+                                          Icons
+                                              .refresh_rounded,
+                                        ),
+                                        label:
+                                            const Text(
+                                          'NEXT DEAL',
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// SCORE STRIP
+// ============================================================
+
+class _ScoreStrip extends StatelessWidget {
+  final BlackQueenGame game;
+
+  const _ScoreStrip({
+    required this.game,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 5,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(.2),
+        borderRadius:
+            BorderRadius.circular(20),
+      ),
+      child: const Text(
+        'LOWEST SCORE WINS  •  ♠Q = 12  •  ♥ = 1',
+        style: TextStyle(
+          color: Colors.white54,
+          fontSize: 9,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// STATUS MESSAGE
+// ============================================================
+
+class _StatusPill extends StatelessWidget {
+  final String text;
+  final bool highlight;
+
+  const _StatusPill({
+    required this.text,
+    required this.highlight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration:
+          const Duration(milliseconds: 200),
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 15,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: highlight
+            ? const Color(0xFFD9A441)
+                .withOpacity(.15)
+            : Colors.black.withOpacity(.18),
+        borderRadius:
+            BorderRadius.circular(30),
+        border: Border.all(
+          color: highlight
+              ? const Color(0xFFD9A441)
+                  .withOpacity(.5)
+              : Colors.white12,
+        ),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: highlight
+              ? const Color(0xFFF4D88A)
+              : Colors.white60,
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// TABLE BACKGROUND
+// ============================================================
+
+class _TablePatternPainter
+    extends CustomPainter {
+  @override
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
+    final paint = Paint()
+      ..color =
+          Colors.white.withOpacity(.012);
+
+    for (
+      double x = -size.height;
+      x < size.width;
+      x += 38
+    ) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(
+          x + size.height,
+          size.height,
+        ),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
+    return false;
+  }
+}
