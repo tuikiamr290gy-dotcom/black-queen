@@ -77,36 +77,39 @@ class _HostLobbyPageState extends State<HostLobbyPage> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: Colors.green.shade900,
         appBar: AppBar(title: const Text('Host Game')),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('Turn on your phone\'s wifi hotspot, then share this address with the other players:',
-                  style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  address == null ? 'Finding address...' : address!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                    'Turn on your phone\'s wifi hotspot, then share this address with the other players:',
+                    style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+                  child: Text(
+                    address == null ? 'Finding address...' : address!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const Text('Seats', style: TextStyle(color: Colors.white, fontSize: 18)),
-              const SizedBox(height: 8),
-              for (final s in seats)
-                ListTile(
-                  tileColor: Colors.white10,
-                  leading: Icon(s.isBot ? Icons.smart_toy : Icons.person, color: Colors.white),
-                  title: Text(s.name, style: const TextStyle(color: Colors.white)),
-                  trailing: Text(s.isBot ? 'Bot' : 'Player', style: const TextStyle(color: Colors.amber)),
-                ),
-              const Spacer(),
-              FilledButton(onPressed: _startGame, child: const Text('Start Game')),
-            ],
+                const SizedBox(height: 24),
+                const Text('Seats', style: TextStyle(color: Colors.white, fontSize: 18)),
+                const SizedBox(height: 8),
+                for (final s in seats)
+                  ListTile(
+                    tileColor: Colors.white10,
+                    leading: Icon(s.isBot ? Icons.smart_toy : Icons.person, color: Colors.white),
+                    title: Text(s.name, style: const TextStyle(color: Colors.white)),
+                    trailing: Text(s.isBot ? 'Bot' : 'Player', style: const TextStyle(color: Colors.amber)),
+                  ),
+                const SizedBox(height: 24),
+                FilledButton(onPressed: _startGame, child: const Text('Start Game')),
+              ],
+            ),
           ),
         ),
       );
@@ -181,37 +184,42 @@ class _JoinPageState extends State<JoinPage> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: Colors.green.shade900,
         appBar: AppBar(title: const Text('Join Game')),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text('Connect to the same wifi hotspot as the host, then type their address below.',
-                  style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _nameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Your name', filled: true, fillColor: Colors.white10),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _addressController,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                    labelText: 'Host address (e.g. 192.168.43.1)', filled: true, fillColor: Colors.white10),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(onPressed: _connect, child: const Text('Connect')),
-              const SizedBox(height: 16),
-              Text(status, style: const TextStyle(color: Colors.amber)),
-            ],
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Connect to the same wifi hotspot as the host, then type their address below.',
+                    style: TextStyle(color: Colors.white70)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _nameController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration:
+                      const InputDecoration(labelText: 'Your name', filled: true, fillColor: Colors.white10),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _addressController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                      labelText: 'Host address (e.g. 192.168.43.1)', filled: true, fillColor: Colors.white10),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(onPressed: _connect, child: const Text('Connect')),
+                const SizedBox(height: 16),
+                Text(status, style: const TextStyle(color: Colors.amber)),
+              ],
+            ),
           ),
         ),
       );
 }
 
 /// The table screen used by every phone once a networked game has started.
+/// Whoever is looking at it always sees themself at the bottom, with the
+/// other three seats arranged left, top, and right around them.
 class NetworkGamePage extends StatefulWidget {
   final int mySeat;
   final GameLink link;
@@ -256,6 +264,15 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
   /// What to call a seat on this phone's screen: "You" for this phone's
   /// own seat, and its real name for everyone else.
   String _displayName(int seat) => seat == widget.mySeat ? 'You' : names[seat];
+
+  /// The seat sitting at a given position around the table, relative to
+  /// this phone: 0 = you (bottom), 1 = left, 2 = across (top), 3 = right.
+  int _seatAt(int position) => (widget.mySeat + position) % 4;
+
+  PlayingCard? _cardAt(int seat) {
+    final match = table.where((e) => e.key == seat);
+    return match.isEmpty ? null : match.first.value;
+  }
 
   void _removePlayedFromHand(List trick) {
     for (final p in trick) {
@@ -347,86 +364,82 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
             ? 'Your turn'
             : '${_displayName(currentSeat)} is playing...';
 
+    Widget seatMarkerFor(int position) {
+      final seat = _seatAt(position);
+      return SeatMarker(
+        name: _displayName(seat),
+        isBot: isBot[seat],
+        score: scores[seat],
+        active: currentSeat == seat && !dealOver,
+        playedCard: _cardAt(seat),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.green.shade900,
-      appBar: AppBar(title: Text('Black Queen  •  Deal $dealNumber')),
+      appBar: AppBar(title: Text('Black Queen  •  Deal $dealNumber'), toolbarHeight: 40),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Row(
+        child: Column(
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 3),
+              child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
+                  style: TextStyle(color: Colors.white54, fontSize: 11)),
+            ),
+            Expanded(
+              child: Stack(
                 children: [
-                  for (var i = 0; i < 4; i++)
-                    Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.all(3),
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          color: currentSeat == i && !dealOver ? Colors.amber.withOpacity(0.3) : Colors.white12,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            PlayerBadge(
-                              name: _displayName(i),
-                              isBot: isBot[i],
-                              active: currentSeat == i && !dealOver,
-                            ),
-                            const SizedBox(height: 2),
-                            Text('${scores[i]}', style: const TextStyle(fontSize: 20, color: Colors.white)),
-                          ],
-                        ),
-                      ),
+                  Positioned(top: 0, left: 0, right: 0, child: Center(child: seatMarkerFor(2))),
+                  Positioned(left: 0, top: 0, bottom: 0, child: Center(child: seatMarkerFor(1))),
+                  Positioned(right: 0, top: 0, bottom: 0, child: Center(child: seatMarkerFor(3))),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 90),
+                      child: Text(message,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
                     ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              const Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
-              const Spacer(),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  for (var seat = 0; seat < 4; seat++)
-                    Column(
+                  ),
+                  Positioned(
+                    left: 90,
+                    right: 90,
+                    bottom: 0,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        PlayerBadge(
-                          name: _displayName(seat),
-                          isBot: isBot[seat],
-                          active: currentSeat == seat && !dealOver,
-                        ),
+                        Text('You: ${scores[widget.mySeat]}  •  $status',
+                            style: const TextStyle(color: Colors.white, fontSize: 13)),
                         const SizedBox(height: 4),
                         SizedBox(
-                          height: 74,
-                          child: table.any((e) => e.key == seat)
-                              ? CardView(card: table.firstWhere((e) => e.key == seat).value)
-                              : const SizedBox(width: 52),
+                          height: 78,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                for (final card in myHand)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                                    child: CardView(card: card, onTap: () => _onTapCard(card)),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
+                        if (dealOver && widget.mySeat == 0)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4, bottom: 4),
+                            child:
+                                FilledButton(onPressed: widget.link.nextDeal, child: const Text('Next deal')),
+                          ),
                       ],
                     ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Text(message,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
-              const Spacer(),
-              Text(status, style: const TextStyle(color: Colors.white, fontSize: 18)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                alignment: WrapAlignment.center,
-                children: [
-                  for (final card in myHand) CardView(card: card, onTap: () => _onTapCard(card)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (dealOver && widget.mySeat == 0)
-                FilledButton(onPressed: widget.link.nextDeal, child: const Text('Next deal')),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
