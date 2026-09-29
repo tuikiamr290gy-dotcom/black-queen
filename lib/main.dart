@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'bot_player.dart';
 import 'game_logic.dart';
-
+import 'multiplayer_ui.dart';
 void main() => runApp(const BlackQueenApp());
 
 class BlackQueenApp extends StatelessWidget {
@@ -13,7 +13,7 @@ class BlackQueenApp extends StatelessWidget {
         title: 'Black Queen',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.green),
-        home: const GamePage(),
+        home: const HomePage(),
       );
 }
 
