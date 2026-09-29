@@ -40,7 +40,7 @@ class HostServer {
   ServerSocket? _server;
   final List<Socket?> _sockets = List.filled(4, null);
   final List<SeatInfo> seats = List.generate(
-      4, (i) => SeatInfo(i, name: i == 0 ? 'You' : 'Bot $i', isBot: i != 0, connected: i == 0));
+      4, (i) => SeatInfo(i, name: i == 0 ? 'Host' : 'Bot $i', isBot: i != 0, connected: i == 0));
 
   final _lobbyController = StreamController<List<SeatInfo>>.broadcast();
   Stream<List<SeatInfo>> get lobbyUpdates => _lobbyController.stream;
@@ -225,6 +225,10 @@ class GameClient implements GameLink {
   Socket? _socket;
   final _controller = StreamController<Map<String, dynamic>>.broadcast();
 
+  /// Every message received so far, in order. Used to catch a screen up
+  /// on anything it missed while it was still being built.
+  final List<Map<String, dynamic>> log = [];
+
   @override
   Stream<Map<String, dynamic>> get events => _controller.stream;
 
@@ -235,7 +239,9 @@ class GameClient implements GameLink {
     lines.listen(
       (line) {
         try {
-          _controller.add(jsonDecode(line) as Map<String, dynamic>);
+          final decoded = jsonDecode(line) as Map<String, dynamic>;
+          log.add(decoded);
+          _controller.add(decoded);
         } catch (_) {}
       },
       onDone: () => _controller.add({'type': 'disconnected'}),
