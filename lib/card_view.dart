@@ -1,3 +1,108 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+
+import 'game_logic.dart';
+
+String seatName(int seat) => seat == 0 ? 'You' : 'Bot $seat';
+
+/// Position of a suit symbol on a number card.
+class _Pip {
+  final double dx;
+  final double dy;
+  final bool flipped;
+
+  const _Pip(
+    this.dx,
+    this.dy, {
+    this.flipped = false,
+  });
+}
+
+/// Pip layouts for number cards.
+const Map<int, List<_Pip>> _pipLayouts = {
+  2: [
+    _Pip(0.50, 0.22),
+    _Pip(0.50, 0.78, flipped: true),
+  ],
+  3: [
+    _Pip(0.50, 0.20),
+    _Pip(0.50, 0.50),
+    _Pip(0.50, 0.80, flipped: true),
+  ],
+  4: [
+    _Pip(0.28, 0.22),
+    _Pip(0.72, 0.22),
+    _Pip(0.28, 0.78, flipped: true),
+    _Pip(0.72, 0.78, flipped: true),
+  ],
+  5: [
+    _Pip(0.28, 0.22),
+    _Pip(0.72, 0.22),
+    _Pip(0.50, 0.50),
+    _Pip(0.28, 0.78, flipped: true),
+    _Pip(0.72, 0.78, flipped: true),
+  ],
+  6: [
+    _Pip(0.28, 0.20),
+    _Pip(0.72, 0.20),
+    _Pip(0.28, 0.50),
+    _Pip(0.72, 0.50),
+    _Pip(0.28, 0.80, flipped: true),
+    _Pip(0.72, 0.80, flipped: true),
+  ],
+  7: [
+    _Pip(0.28, 0.18),
+    _Pip(0.72, 0.18),
+    _Pip(0.50, 0.34),
+    _Pip(0.28, 0.50),
+    _Pip(0.72, 0.50),
+    _Pip(0.28, 0.82, flipped: true),
+    _Pip(0.72, 0.82, flipped: true),
+  ],
+  8: [
+    _Pip(0.28, 0.16),
+    _Pip(0.72, 0.16),
+    _Pip(0.50, 0.32),
+    _Pip(0.28, 0.50),
+    _Pip(0.72, 0.50),
+    _Pip(0.50, 0.68, flipped: true),
+    _Pip(0.28, 0.84, flipped: true),
+    _Pip(0.72, 0.84, flipped: true),
+  ],
+  9: [
+    _Pip(0.28, 0.14),
+    _Pip(0.72, 0.14),
+    _Pip(0.28, 0.36),
+    _Pip(0.72, 0.36),
+    _Pip(0.50, 0.50),
+    _Pip(0.28, 0.64, flipped: true),
+    _Pip(0.72, 0.64, flipped: true),
+    _Pip(0.28, 0.86, flipped: true),
+    _Pip(0.72, 0.86, flipped: true),
+  ],
+  10: [
+    _Pip(0.28, 0.12),
+    _Pip(0.72, 0.12),
+    _Pip(0.50, 0.24),
+    _Pip(0.28, 0.38),
+    _Pip(0.72, 0.38),
+    _Pip(0.28, 0.62, flipped: true),
+    _Pip(0.72, 0.62, flipped: true),
+    _Pip(0.50, 0.76, flipped: true),
+    _Pip(0.28, 0.88, flipped: true),
+    _Pip(0.72, 0.88, flipped: true),
+  ],
+};
+
+/// Simple symbols for face cards.
+const Map<int, IconData> _faceIcons = {
+  11: Icons.person,       // Jack
+  12: Icons.diamond,      // Queen
+  13: Icons.workspace_premium, // King
+};
+
+/// Playing card widget.
 class CardView extends StatelessWidget {
   final PlayingCard card;
   final bool dimmed;
@@ -19,7 +124,7 @@ class CardView extends StatelessWidget {
     final bool isRed =
         card.suit == Suit.hearts || card.suit == Suit.diamonds;
 
-    final Color suitColor =
+    final Color cardColor =
         isRed ? const Color(0xFFD32F2F) : const Color(0xFF111111);
 
     return GestureDetector(
@@ -48,26 +153,26 @@ class CardView extends StatelessWidget {
           ),
           child: Stack(
             children: [
-              // TOP LEFT
+              // Top-left corner.
               Positioned(
                 left: 4,
-                top: 3,
-                child: _corner(suitColor),
+                top: 4,
+                child: _corner(cardColor),
               ),
 
-              // BOTTOM RIGHT
+              // Bottom-right corner.
               Positioned(
                 right: 4,
-                bottom: 3,
+                bottom: 4,
                 child: Transform.rotate(
                   angle: pi,
-                  child: _corner(suitColor),
+                  child: _corner(cardColor),
                 ),
               ),
 
-              // CENTER
+              // Center of card.
               Positioned.fill(
-                child: _center(suitColor),
+                child: _centerContent(cardColor),
               ),
             ],
           ),
@@ -84,7 +189,7 @@ class CardView extends StatelessWidget {
           card.rankLabel,
           style: TextStyle(
             color: color,
-            fontSize: width * 0.25,
+            fontSize: width * 0.24,
             fontWeight: FontWeight.bold,
             height: 0.9,
           ),
@@ -93,7 +198,7 @@ class CardView extends StatelessWidget {
           card.suitSymbol,
           style: TextStyle(
             color: color,
-            fontSize: width * 0.19,
+            fontSize: width * 0.18,
             height: 0.9,
           ),
         ),
@@ -101,63 +206,74 @@ class CardView extends StatelessWidget {
     );
   }
 
-  Widget _center(Color color) {
-    // ACE
+  Widget _centerContent(Color color) {
+    // Ace.
     if (card.rank == 14) {
       return Center(
         child: Text(
           card.suitSymbol,
           style: TextStyle(
             color: color,
-            fontSize: width * 0.65,
+            fontSize: width * 0.60,
             height: 1,
           ),
         ),
       );
     }
 
-    // JACK / QUEEN / KING
+    // Jack, Queen, King.
     if (card.rank == 11 ||
         card.rank == 12 ||
         card.rank == 13) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              card.rankLabel,
-              style: TextStyle(
-                color: color,
-                fontSize: width * 0.52,
-                fontWeight: FontWeight.bold,
-                height: 0.9,
-              ),
+        child: Container(
+          width: width * 0.62,
+          height: height * 0.58,
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: color.withOpacity(0.35),
+              width: 1,
             ),
-            const SizedBox(height: 2),
-            Text(
-              card.suitSymbol,
-              style: TextStyle(
-                color: color,
-                fontSize: width * 0.32,
-                height: 0.9,
+            borderRadius: BorderRadius.circular(5),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                card.rankLabel,
+                style: TextStyle(
+                  color: color,
+                  fontSize: width * 0.38,
+                  fontWeight: FontWeight.bold,
+                  height: 0.9,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                card.suitSymbol,
+                style: TextStyle(
+                  color: color,
+                  fontSize: width * 0.28,
+                  height: 0.9,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    // NUMBER CARDS
-    final pips = _pipLayouts[card.rank] ?? const [];
+    // Number cards.
+    final List<_Pip> pips = _pipLayouts[card.rank] ?? const [];
 
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: width * 0.10,
-        vertical: height * 0.13,
+        vertical: height * 0.10,
       ),
       child: Stack(
         children: [
-          for (final pip in pips)
+          for (final _Pip pip in pips)
             Align(
               alignment: Alignment(
                 pip.dx * 2 - 1,
@@ -169,7 +285,7 @@ class CardView extends StatelessWidget {
                   card.suitSymbol,
                   style: TextStyle(
                     color: color,
-                    fontSize: width * 0.19,
+                    fontSize: width * 0.18,
                     fontWeight: FontWeight.w500,
                     height: 1,
                   ),
@@ -178,6 +294,99 @@ class CardView extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+/// Player badge.
+class PlayerBadge extends StatelessWidget {
+  final String name;
+  final bool isBot;
+  final bool active;
+
+  const PlayerBadge({
+    super.key,
+    required this.name,
+    required this.isBot,
+    this.active = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CircleAvatar(
+          radius: 14,
+          backgroundColor:
+              active ? Colors.amber : Colors.white24,
+          child: Icon(
+            isBot ? Icons.smart_toy : Icons.person,
+            size: 16,
+            color: active ? Colors.black : Colors.white,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          name,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Seat marker used for the three opponents.
+class SeatMarker extends StatelessWidget {
+  final String name;
+  final bool isBot;
+  final bool active;
+  final int score;
+  final PlayingCard? playedCard;
+
+  const SeatMarker({
+    super.key,
+    required this.name,
+    required this.isBot,
+    required this.score,
+    this.active = false,
+    this.playedCard,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        PlayerBadge(
+          name: name,
+          isBot: isBot,
+          active: active,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          '$score',
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 62,
+          width: 44,
+          child: playedCard != null
+              ? CardView(
+                  card: playedCard!,
+                  width: 44,
+                  height: 62,
+                )
+              : null,
+        ),
+      ],
     );
   }
 }
