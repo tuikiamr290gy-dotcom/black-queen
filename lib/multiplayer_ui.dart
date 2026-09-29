@@ -396,10 +396,19 @@ class _NetworkGamePageState extends State<NetworkGamePage> {
                     alignment: Alignment.center,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 90),
-                      child: Text(message,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_cardAt(widget.mySeat) != null) ...[
+                            CardView(card: _cardAt(widget.mySeat)!, width: 44, height: 62),
+                            const SizedBox(height: 6),
+                          ],
+                          Text(message,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
                     ),
                   ),
                   Positioned(
