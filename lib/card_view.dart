@@ -13,6 +13,12 @@ class _Pip {
   final double dx;
   final double dy;
   final bool flipped;
+  const _Pip(
+    this.dx,
+    this.dy, {
+    this.flipped = false,
+     });
+} 
   const Map<int, List<_Pip>> _pipLayouts = {
   2: [
     _Pip(0.50, 0.20),
