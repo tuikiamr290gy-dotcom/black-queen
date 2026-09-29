@@ -260,9 +260,9 @@ class _GamePageState extends State<GamePage> {
             Column(
               children: [
                 const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: 6),
                   child: Text('Lowest points wins  •  Black Queen = 12  •  Heart = 1',
-                      style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      style: TextStyle(color: Colors.white54, fontSize: 11)),
                 ),
                 Expanded(
                   child: Stack(
@@ -318,41 +318,41 @@ class _GamePageState extends State<GamePage> {
                               Text(message,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
-                                      color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold)),
+                                      color: Colors.amber, fontSize: 15, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
                       ),
                       Positioned(
-                        left: 90,
-                        right: 90,
+                        left: 0,
+                        right: 0,
                         bottom: 0,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('YOU: ${game.scores[0]} POINTS  •  $status',
-                                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            SizedBox(
-                              height: 78,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: [
-                                    for (final card in game.hands[0])
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 2),
-                                        child: CardView(
-                                          card: card,
-                                          dimmed: canPlay && !legal.contains(card),
-                                          onTap: () => _onTapCard(card),
-                                        ),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 2),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  for (final card in game.hands[0])
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
+                                      child: CardView(
+                                        card: card,
+                                        width: 36,
+                                        height: 52,
+                                        dimmed: canPlay && !legal.contains(card),
+                                        onTap: () => _onTapCard(card),
                                       ),
-                                  ],
-                                ),
+                                    ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
                           ],
                         ),
                       ),
