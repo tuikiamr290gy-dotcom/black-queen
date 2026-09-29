@@ -186,3 +186,38 @@ class PlayerBadge extends StatelessWidget {
         ],
       );
 }
+
+/// One seat's spot at the table: their badge, score, and the card they
+/// played this round (if any). Used for the three opponent positions.
+class SeatMarker extends StatelessWidget {
+  final String name;
+  final bool isBot;
+  final bool active;
+  final int score;
+  final PlayingCard? playedCard;
+
+  const SeatMarker({
+    super.key,
+    required this.name,
+    required this.isBot,
+    required this.score,
+    this.active = false,
+    this.playedCard,
+  });
+
+  @override
+  Widget build(BuildContext context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PlayerBadge(name: name, isBot: isBot, active: active),
+          const SizedBox(height: 2),
+          Text('$score', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          const SizedBox(height: 4),
+          SizedBox(
+            height: 62,
+            width: 44,
+            child: playedCard != null ? CardView(card: playedCard!, width: 44, height: 62) : null,
+          ),
+        ],
+      );
+}
