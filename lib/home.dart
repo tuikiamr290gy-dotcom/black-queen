@@ -441,6 +441,100 @@ class _GameMode {
 class MultiplayerMenuPage extends StatelessWidget {
   const MultiplayerMenuPage({super.key});
 
+  void _openComingSoon(BuildContext context, String title) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: const Text(
+          'Online multiplayer is being prepared.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuButton(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: SizedBox(
+        width: 420,
+        child: FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 18,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 30),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: 12,
+        bottom: 12,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white70),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -448,54 +542,100 @@ class MultiplayerMenuPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Multiplayer'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Play with Friends',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 40),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'MULTIPLAYER',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
 
-            SizedBox(
-              width: 260,
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HostLobbyPage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.wifi_tethering),
-                label: const Text('Host Game'),
-              ),
-            ),
+                const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
+                // -------------------------
+                // WI-FI MULTIPLAYER
+                // -------------------------
+                _sectionTitle(
+                  'Wi-Fi Multiplayer',
+                  Icons.wifi,
+                ),
 
-            SizedBox(
-              width: 260,
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const JoinPage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.login),
-                label: const Text('Join Game'),
-              ),
+                _menuButton(
+                  context,
+                  'Host Game',
+                  'Create a game on your local Wi-Fi',
+                  Icons.wifi_tethering,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const HostLobbyPage(),
+                      ),
+                    );
+                  },
+                ),
+
+                _menuButton(
+                  context,
+                  'Join Game',
+                  'Join a game using the host address',
+                  Icons.login,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const JoinPage(),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                // -------------------------
+                // ONLINE MULTIPLAYER
+                // -------------------------
+                _sectionTitle(
+                  'Online Multiplayer',
+                  Icons.public,
+                ),
+
+                _menuButton(
+                  context,
+                  'Create Room',
+                  'Play with friends over the Internet',
+                  Icons.add_circle_outline,
+                  () {
+                    _openComingSoon(
+                      context,
+                      'Create Online Room',
+                    );
+                  },
+                ),
+
+                _menuButton(
+                  context,
+                  'Join Room',
+                  'Enter a room code to play online',
+                  Icons.meeting_room_outlined,
+                  () {
+                    _openComingSoon(
+                      context,
+                      'Join Online Room',
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
