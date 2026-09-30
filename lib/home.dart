@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'multiplayer_ui.dart';
 import 'online_create_room.dart';
+import 'online_match.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -425,15 +426,14 @@ class _HomeState extends State<Home> {
         break;
 
       case 2:
-        // Online Multiplayer
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                const OnlineMenuPage(),
-          ),
-        );
-        break;
+  // Online Multiplayer
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => const OnlineMatchPage(),
+    ),
+  );
+  break;
 
       case 3:
         // Scoreboard
