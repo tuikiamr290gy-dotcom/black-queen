@@ -1,6 +1,7 @@
 import 'main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'multiplayer_ui.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -398,7 +399,12 @@ class _HomeState extends State<Home> {
       break;
 
     case 1:
-      _showComingSoon('Multiplayer');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MultiplayerMenuPage(),
+        ),
+      );
       break;
 
     case 2:
@@ -431,4 +437,67 @@ class _GameMode {
     required this.color1,
     required this.color2,
   });
+}
+class MultiplayerMenuPage extends StatelessWidget {
+  const MultiplayerMenuPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.green.shade900,
+      appBar: AppBar(
+        title: const Text('Multiplayer'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Play with Friends',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 40),
+
+            SizedBox(
+              width: 260,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HostLobbyPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.wifi_tethering),
+                label: const Text('Host Game'),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: 260,
+              child: FilledButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const JoinPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.login),
+                label: const Text('Join Game'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
