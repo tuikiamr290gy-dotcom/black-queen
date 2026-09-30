@@ -1,3 +1,4 @@
+import 'main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -386,28 +387,24 @@ class _HomeState extends State<Home> {
   }
 
   void _openMode(int index) {
-    switch (index) {
-      case 0:
-        // Practice vs Computer
-        //
-        // Connect this to your existing
-        // Black Queen practice/game screen.
-        _showComingSoon('Practice vs Computer');
-        break;
+  switch (index) {
+    case 0:
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const GamePage(),
+        ),
+      );
+      break;
 
-      case 1:
-        // Multiplayer
-        //
-        // Connect this to your existing
-        // Host / Join multiplayer screen.
-        _showComingSoon('Multiplayer');
-        break;
+    case 1:
+      _showComingSoon('Multiplayer');
+      break;
 
-      case 2:
-        // Scoreboard
-        _showComingSoon('Scoreboard');
-        break;
-    }
+    case 2:
+      _showComingSoon('Scoreboard');
+      break;
+  }
   }
 
   void _showComingSoon(String title) {
