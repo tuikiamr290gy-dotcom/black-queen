@@ -1,10 +1,8 @@
-```dart
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 
 import 'game_logic.dart';
-
 String seatName(int seat) => seat == 0 ? 'You' : 'Bot $seat';
 
 /// Displays a card using the PNG artwork from the Call Break project.
