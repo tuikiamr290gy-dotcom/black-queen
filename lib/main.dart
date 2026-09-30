@@ -251,7 +251,7 @@ class _GamePageState extends State<GamePage> {
     final legal = canPlay ? game.legalMoves(0) : <PlayingCard>[];
 
     return SizedBox(
-      height: 100,
+      height: 130,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Padding(
@@ -263,13 +263,13 @@ class _GamePageState extends State<GamePage> {
               for (int i = 0; i < hand.length; i++)
                 Positioned(
                   bottom: 0,
-                  left: i * 35.0, // More space between cards so all 13 are visible
+                  left: i * 50.0, // More space between cards so all 13 are visible
                   child: Transform.rotate(
                     angle: (i - hand.length / 2) * 0.06, // Subtle rotation
                     child: CardView(
                       card: hand[i],
-                      width: 48,
-                      height: 68,
+                      width: 65, // Bigger card width
+                      height: 92, // Bigger card height
                       dimmed: canPlay && !legal.contains(hand[i]),
                       onTap: () => _onTapCard(hand[i]),
                     ),
