@@ -615,22 +615,21 @@ class MultiplayerMenuPage extends StatelessWidget {
                   'Play with friends over the Internet',
                   Icons.add_circle_outline,
                   () {
-                    _openComingSoon(
-                      context,
-                      'Create Online Room',
-                    );
+                    Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => const OnlineCreateRoomPage(),
+  ),
+);
                   },
                 ),
 
                 _menuButton(
                   context,
-                  'Join Room',
-                  'Enter a room code to play online',
-                  Icons.meeting_room_outlined,
-                  () {
-                    _openComingSoon(
-                      context,
-                      'Join Online Room',
+                  _openComingSoon(
+  context,
+  'Join Online Room',
+);                 
                     );
                   },
                 ),
