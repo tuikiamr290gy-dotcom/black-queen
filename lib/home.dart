@@ -25,20 +25,23 @@ class _HomeState extends State<Home> {
       color1: Color(0xFF1C1C1C),
       color2: Color(0xFF4A4A4A),
     ),
-   _GameMode(
-  title: 'Online Multiplayer',
-  subtitle: 'Play with friends over the Internet',
-  icon: Icons.public_rounded,
-  color1: Color(0xFF145A32),
-  color2: Color(0xFF27AE60),
-),
+
     _GameMode(
-      title: 'Multiplayer',
-      subtitle: 'Play with friends',
-      icon: Icons.people_alt_rounded,
+      title: 'Wi-Fi Multiplayer',
+      subtitle: 'Play with friends nearby',
+      icon: Icons.wifi_rounded,
       color1: Color(0xFF173B5E),
       color2: Color(0xFF2E7699),
     ),
+
+    _GameMode(
+      title: 'Online Multiplayer',
+      subtitle: 'Play with friends over the Internet',
+      icon: Icons.public_rounded,
+      color1: Color(0xFF145A32),
+      color2: Color(0xFF27AE60),
+    ),
+
     _GameMode(
       title: 'Scoreboard',
       subtitle: 'View your scores',
@@ -298,7 +301,8 @@ class _HomeState extends State<Home> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color:
+                        Colors.white.withOpacity(0.12),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color:
@@ -369,62 +373,80 @@ class _HomeState extends State<Home> {
     );
   }
 
-    Widget _selectedModeInfo() {
-    ...
+  Widget _selectedModeInfo() {
+    final mode = _modes[_currentPage];
+
+    return Column(
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+      children: [
+        Text(
+          mode.title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        const SizedBox(height: 3),
+
+        Text(
+          mode.subtitle,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontSize: 13,
+          ),
+        ),
+      ],
+    );
   }
 
   void _openMode(int index) {
-  switch (index) {
-    case 0:
-      // Practice
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const GamePage(),
-        ),
-      );
-      break;
+    switch (index) {
+      case 0:
+        // Practice
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const GamePage(),
+          ),
+        );
+        break;
 
-    case 1:
-      // Wi-Fi Multiplayer
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MultiplayerMenuPage(),
-        ),
-      );
-      break;
+      case 1:
+        // Wi-Fi Multiplayer
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const MultiplayerMenuPage(),
+          ),
+        );
+        break;
 
-    case 2:
-      // Online Multiplayer
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const OnlineMenuPage(),
-        ),
-      );
-      break;
+      case 2:
+        // Online Multiplayer
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                const OnlineMenuPage(),
+          ),
+        );
+        break;
 
-    case 3:
-      // Scoreboard
-      _showComingSoon('Scoreboard');
-      break;
+      case 3:
+        // Scoreboard
+        _showComingSoon('Scoreboard');
+        break;
+    }
   }
-}
-
-void _showComingSoon(String title) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('$title selected'),
-      behavior: SnackBarBehavior.floating,
-    ),
-  );
-}
 
   void _showComingSoon(String title) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('$title selected'),
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -445,6 +467,7 @@ class _GameMode {
     required this.color2,
   });
 }
+
 class MultiplayerMenuPage extends StatelessWidget {
   const MultiplayerMenuPage({super.key});
 
@@ -470,10 +493,13 @@ class MultiplayerMenuPage extends StatelessWidget {
           child: Row(
             children: [
               Icon(icon, size: 30),
+
               const SizedBox(width: 18),
+
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -482,14 +508,19 @@ class MultiplayerMenuPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     const SizedBox(height: 3),
+
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
               ),
+
               const Icon(
                 Icons.arrow_forward_ios,
                 size: 18,
@@ -501,20 +532,26 @@ class MultiplayerMenuPage extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title, IconData icon) {
+  Widget _sectionTitle(
+    String title,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(
         top: 12,
         bottom: 12,
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment:
+            MainAxisAlignment.center,
         children: [
           Icon(
             icon,
             color: Colors.white70,
           ),
+
           const SizedBox(width: 8),
+
           Text(
             title,
             style: const TextStyle(
@@ -566,7 +603,8 @@ class MultiplayerMenuPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const HostLobbyPage(),
+                        builder: (_) =>
+                            const HostLobbyPage(),
                       ),
                     );
                   },
@@ -581,7 +619,8 @@ class MultiplayerMenuPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const JoinPage(),
+                        builder: (_) =>
+                            const JoinPage(),
                       ),
                     );
                   },
@@ -594,7 +633,6 @@ class MultiplayerMenuPage extends StatelessWidget {
     );
   }
 }
-
 
 class OnlineMenuPage extends StatelessWidget {
   const OnlineMenuPage({super.key});
@@ -621,10 +659,13 @@ class OnlineMenuPage extends StatelessWidget {
           child: Row(
             children: [
               Icon(icon, size: 30),
+
               const SizedBox(width: 18),
+
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -633,14 +674,19 @@ class OnlineMenuPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+
                     const SizedBox(height: 3),
+
                     Text(
                       subtitle,
-                      style: const TextStyle(fontSize: 13),
+                      style: const TextStyle(
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
               ),
+
               const Icon(
                 Icons.arrow_forward_ios,
                 size: 18,
@@ -706,7 +752,8 @@ class OnlineMenuPage extends StatelessWidget {
                   'Enter a room code to join friends',
                   Icons.meeting_room_outlined,
                   () {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(
                       const SnackBar(
                         content: Text(
                           'Join Room will be added next.',
