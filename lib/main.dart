@@ -153,6 +153,69 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  /// Score table shown in top left corner
+  Widget _scoreTable() {
+    final scores = game.scores;
+    return Container(
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        border: Border.all(color: Colors.amber, width: 2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'SCORES',
+            style: TextStyle(
+              color: Colors.amber,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _scoreRow('You', scores[0]),
+          _scoreRow('Bot 1', scores[1]),
+          _scoreRow('Bot 2', scores[2]),
+          _scoreRow('Bot 3', scores[3]),
+        ],
+      ),
+    );
+  }
+
+  Widget _scoreRow(String name, int score) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 50,
+            child: Text(
+              name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            score.toString(),
+            style: const TextStyle(
+              color: Colors.amber,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Shows the final scoreboard when the deal is over.
   Widget _scoreboardOverlay() {
     if (!gameOver) return const SizedBox.shrink();
@@ -374,6 +437,12 @@ class _GamePageState extends State<GamePage> {
                   ),
                 ),
               ],
+            ),
+            // Score table in top left corner
+            Positioned(
+              top: 0,
+              left: 0,
+              child: _scoreTable(),
             ),
             Positioned(
               left: 0,
