@@ -262,5 +262,4 @@ class SeatMarker extends StatelessWidget {
     );
   }
 }
-```
-  
+
