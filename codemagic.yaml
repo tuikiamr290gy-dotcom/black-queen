@@ -4,17 +4,16 @@ workflows:
     max_build_duration: 30
     environment:
       flutter: stable
-      java: 17
     scripts:
-      - name: Verify Flutter project structure
+      - name: Create missing platform folders
         script: |
-          flutter --version
-          ls -la
           if [ ! -d "android" ]; then
             flutter create --platforms=android .
           fi
-      - name: Install dependencies
-        script: flutter pub get
+      - name: Get packages
+        script: flutter packages pub get
+      - name: Generate app icon
+        script: dart run flutter_launcher_icons
       - name: Build APK
         script: flutter build apk --debug
     artifacts:
