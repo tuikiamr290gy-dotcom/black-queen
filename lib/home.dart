@@ -25,6 +25,13 @@ class _HomeState extends State<Home> {
       color1: Color(0xFF1C1C1C),
       color2: Color(0xFF4A4A4A),
     ),
+   _GameMode(
+  title: 'Online Multiplayer',
+  subtitle: 'Play with friends over the Internet',
+  icon: Icons.public_rounded,
+  color1: Color(0xFF145A32),
+  color2: Color(0xFF27AE60),
+),
     _GameMode(
       title: 'Multiplayer',
       subtitle: 'Play with friends',
@@ -388,41 +395,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  void _openMode(int index) {
-  switch (index) {
-    case 0:
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const GamePage(),
-        ),
-      );
-      break;
-
-    case 1:
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const MultiplayerMenuPage(),
-        ),
-      );
-      break;
-
-    case 2:
-      _showComingSoon('Scoreboard');
-      break;
-  }
-  }
-
-  void _showComingSoon(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$title selected'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-}
+  
 
 class _GameMode {
   final String title;
@@ -598,38 +571,114 @@ class MultiplayerMenuPage extends StatelessWidget {
                     );
                   },
                 ),
+class OnlineMenuPage extends StatelessWidget {
+  const OnlineMenuPage({super.key});
 
-                const SizedBox(height: 12),
-
-                // -------------------------
-                // ONLINE MULTIPLAYER
-                // -------------------------
-                _sectionTitle(
-                  'Online Multiplayer',
-                  Icons.public,
+  Widget _button(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: SizedBox(
+        width: 420,
+        child: FilledButton(
+          onPressed: onPressed,
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 18,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 30),
+              const SizedBox(width: 18),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ],
                 ),
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                _menuButton(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.green.shade900,
+      appBar: AppBar(
+        title: const Text('Online Multiplayer'),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                const Icon(
+                  Icons.public,
+                  color: Colors.white,
+                  size: 60,
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'ONLINE MULTIPLAYER',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                _button(
                   context,
                   'Create Room',
-                  'Play with friends over the Internet',
+                  'Create a room and invite friends',
                   Icons.add_circle_outline,
                   () {
                     Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => const OnlineCreateRoomPage(),
-  ),
-);
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            const OnlineCreateRoomPage(),
+                      ),
+                    );
                   },
                 ),
-
-                _menuButton(
+                _button(
                   context,
-                  _openComingSoon(
-  context,
-  'Join Online Room',
-);                 
+                  'Join Room',
+                  'Enter a room code to join friends',
+                  Icons.meeting_room_outlined,
+                  () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Join Room will be added next.',
+                        ),
+                      ),
                     );
                   },
                 ),
