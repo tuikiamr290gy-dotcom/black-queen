@@ -369,33 +369,66 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _selectedModeInfo() {
-    final mode = _modes[_currentPage];
-
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        Text(
-          mode.title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 3),
-        Text(
-          mode.subtitle,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 13,
-          ),
-        ),
-      ],
-    );
+    Widget _selectedModeInfo() {
+    ...
   }
 
-  
+  void _openMode(int index) {
+  switch (index) {
+    case 0:
+      // Practice
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const GamePage(),
+        ),
+      );
+      break;
+
+    case 1:
+      // Wi-Fi Multiplayer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MultiplayerMenuPage(),
+        ),
+      );
+      break;
+
+    case 2:
+      // Online Multiplayer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const OnlineMenuPage(),
+        ),
+      );
+      break;
+
+    case 3:
+      // Scoreboard
+      _showComingSoon('Scoreboard');
+      break;
+  }
+}
+
+void _showComingSoon(String title) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('$title selected'),
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
+}
+
+  void _showComingSoon(String title) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$title selected'),
+      ),
+    );
+  }
+}
 
 class _GameMode {
   final String title;
@@ -414,24 +447,6 @@ class _GameMode {
 }
 class MultiplayerMenuPage extends StatelessWidget {
   const MultiplayerMenuPage({super.key});
-
-  void _openComingSoon(BuildContext context, String title) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: const Text(
-          'Online multiplayer is being prepared.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _menuButton(
     BuildContext context,
@@ -470,14 +485,15 @@ class MultiplayerMenuPage extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        fontSize: 13,
-                      ),
+                      style: const TextStyle(fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 18),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 18,
+              ),
             ],
           ),
         ),
@@ -494,7 +510,10 @@ class MultiplayerMenuPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.white70),
+          Icon(
+            icon,
+            color: Colors.white70,
+          ),
           const SizedBox(width: 8),
           Text(
             title,
@@ -514,17 +533,16 @@ class MultiplayerMenuPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.green.shade900,
       appBar: AppBar(
-        title: const Text('Multiplayer'),
+        title: const Text('Wi-Fi Multiplayer'),
       ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'MULTIPLAYER',
+                  'WI-FI MULTIPLAYER',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 30,
@@ -534,11 +552,8 @@ class MultiplayerMenuPage extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // -------------------------
-                // WI-FI MULTIPLAYER
-                // -------------------------
                 _sectionTitle(
-                  'Wi-Fi Multiplayer',
+                  'Wi-Fi',
                   Icons.wifi,
                 ),
 
@@ -571,6 +586,16 @@ class MultiplayerMenuPage extends StatelessWidget {
                     );
                   },
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
 class OnlineMenuPage extends StatelessWidget {
   const OnlineMenuPage({super.key});
 
@@ -616,7 +641,10 @@ class OnlineMenuPage extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_ios, size: 18),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 18,
+              ),
             ],
           ),
         ),
@@ -642,7 +670,9 @@ class OnlineMenuPage extends StatelessWidget {
                   color: Colors.white,
                   size: 60,
                 ),
+
                 const SizedBox(height: 10),
+
                 const Text(
                   'ONLINE MULTIPLAYER',
                   style: TextStyle(
@@ -651,7 +681,9 @@ class OnlineMenuPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 const SizedBox(height: 30),
+
                 _button(
                   context,
                   'Create Room',
@@ -667,6 +699,7 @@ class OnlineMenuPage extends StatelessWidget {
                     );
                   },
                 ),
+
                 _button(
                   context,
                   'Join Room',
