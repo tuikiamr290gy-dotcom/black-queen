@@ -12,8 +12,6 @@ workflows:
           fi
       - name: Get packages
         script: flutter packages pub get
-      - name: Generate app icon
-        script: dart run flutter_launcher_icons
       - name: Build APK
         script: flutter build apk --debug
     artifacts:
