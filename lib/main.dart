@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'home.dart';
 import 'bot_player.dart';
 import 'card_view.dart';
 import 'game_logic.dart';
@@ -32,7 +33,7 @@ class BlackQueenApp extends StatelessWidget {
         title: 'Black Queen',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.green),
-        home: const HomePage(),
+        home: const Home(),
       );
 }
 
@@ -172,11 +173,11 @@ class _GamePageState extends State<GamePage> {
             'SCORES',
             style: TextStyle(
               color: Colors.amber,
-              fontSize: 14,
+              fontSize: 7,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           _scoreRow('You', scores[0]),
           _scoreRow('Bot 1', scores[1]),
           _scoreRow('Bot 2', scores[2]),
@@ -193,12 +194,12 @@ class _GamePageState extends State<GamePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 50,
+            width: 30,
             child: Text(
               name,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 11,
+                fontSize: 7,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -207,7 +208,7 @@ class _GamePageState extends State<GamePage> {
             score.toString(),
             style: const TextStyle(
               color: Colors.amber,
-              fontSize: 11,
+              fontSize: 7,
               fontWeight: FontWeight.bold,
             ),
           ),
