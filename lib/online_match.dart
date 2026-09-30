@@ -136,6 +136,16 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
 
           _showMatchFound(data);
           break;
+          case 'game_over':
+  if (!mounted) return;
+
+  setState(() {
+    _searching = false;
+    _status = 'Game Over';
+  });
+
+  _showGameOver(data);
+  break;
 
         case 'search_cancelled':
           if (!mounted) return;
@@ -222,7 +232,75 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       },
     );
   }
+void _showGameOver(Map<String, dynamic> data) {
+  final scores = (data['scores'] as List?)
+          ?.map((e) => e as int)
+          .toList() ??
+      [0, 0, 0, 0];
 
+  final winnerName =
+      data['winnerName']?.toString() ?? 'Player';
+
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return AlertDialog(
+        title: const Row(
+          children: [
+            Icon(
+              Icons.emoji_events,
+              color: Colors.amber,
+            ),
+            SizedBox(width: 10),
+            Text('GAME OVER'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Winner: $winnerName',
+              style: const TextStyle(
+                fontSize: 21,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            for (int i = 0; i < scores.length; i++)
+              ListTile(
+                dense: true,
+                leading: const Icon(Icons.person),
+                title: Text(
+                  'Player ${i + 1}',
+                ),
+                trailing: Text(
+                  '${scores[i]} points',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            const SizedBox(height: 10),
+            const Text(
+              'The player with the lowest score wins.',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('BACK TO HOME'),
+          ),
+        ],
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
