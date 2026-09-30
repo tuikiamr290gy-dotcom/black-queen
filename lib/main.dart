@@ -242,10 +242,43 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
+  /// Builds a fanned hand of cards like a real card game
+  Widget _buildCardHand() {
+    final hand = game.hands[0];
+    if (hand.isEmpty) return const SizedBox.shrink();
+
+    final canPlay = !busy && game.currentSeat == 0 && !game.dealOver;
+    final legal = canPlay ? game.legalMoves(0) : <PlayingCard>[];
+
+    return SizedBox(
+      height: 110,
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          // Draw cards in a fanned pattern
+          for (int i = 0; i < hand.length; i++)
+            Positioned(
+              bottom: 0,
+              left: (i - hand.length / 2) * 26.0, // Spread cards horizontally
+              child: Transform.rotate(
+                angle: (i - hand.length / 2) * 0.085, // Slight rotation for fan effect
+                child: CardView(
+                  card: hand[i],
+                  width: 48,
+                  height: 68,
+                  dimmed: canPlay && !legal.contains(hand[i]),
+                  onTap: () => _onTapCard(hand[i]),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final canPlay = !busy && game.currentSeat == 0 && !game.dealOver;
-    final legal = canPlay ? game.legalMoves(0) : <PlayingCard>[];
 
     final status = game.dealOver
         ? 'All cards are finished'
@@ -331,43 +364,30 @@ class _GamePageState extends State<GamePage> {
                           ),
                         ),
                       ),
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('YOU: ${game.scores[0]} POINTS  •  $status',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 2),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  for (final card in game.hands[0])
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 1.5),
-                                      child: CardView(
-                                        card: card,
-                                        width: 36,
-                                        height: 52,
-                                        dimmed: canPlay && !legal.contains(card),
-                                        onTap: () => _onTapCard(card),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
                     ],
                   ),
                 ),
               ],
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text('YOU: ${game.scores[0]} POINTS  •  $status',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12, left: 20, right: 20),
+                    child: _buildCardHand(),
+                  ),
+                ],
+              ),
             ),
             if (gameOver) _scoreboardOverlay(),
           ],
