@@ -71,22 +71,24 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     super.dispose();
   }
 
+  // ------------------------------------------------------------
+  // CONNECTION / MATCHMAKING
+  // ------------------------------------------------------------
+
   void _findMatch() {
     final name =
         _nameController.text.trim();
 
     if (name.isEmpty) {
       setState(() {
-        _status =
-            'Please enter your name';
+        _status = 'Please enter your name';
       });
       return;
     }
 
     setState(() {
       _searching = true;
-      _status =
-          'Connecting to server...';
+      _status = 'Connecting to server...';
       _playersWaiting = 0;
     });
 
@@ -109,8 +111,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
           setState(() {
             _searching = false;
             _connected = false;
-            _status =
-                'Connection error';
+            _status = 'Connection error';
           });
         },
         onDone: () {
@@ -127,15 +128,14 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
         },
       );
 
-      _connected = true;
+      setState(() {
+        _connected = true;
+      });
 
       Future.delayed(
-        const Duration(
-          milliseconds: 500,
-        ),
+        const Duration(milliseconds: 500),
         () {
-          if (!mounted ||
-              _channel == null) {
+          if (!mounted || _channel == null) {
             return;
           }
 
@@ -148,11 +148,39 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     } catch (e) {
       setState(() {
         _searching = false;
+        _connected = false;
         _status =
             'Could not connect to server';
       });
     }
   }
+
+  void _send(
+    Map<String, dynamic> data,
+  ) {
+    _channel?.sink.add(
+      jsonEncode(data),
+    );
+  }
+
+  void _cancelSearch() {
+    _send({
+      'type': 'cancel_search',
+    });
+
+    _channel?.sink.close();
+
+    setState(() {
+      _searching = false;
+      _connected = false;
+      _playersWaiting = 0;
+      _status = 'Search cancelled';
+    });
+  }
+
+  // ------------------------------------------------------------
+  // SERVER MESSAGES
+  // ------------------------------------------------------------
 
   void _handleMessage(dynamic message) {
     try {
@@ -175,8 +203,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
             _searching = true;
 
             _playersWaiting =
-                (data['playersWaiting'] ??
-                        1)
+                (data['playersWaiting'] ?? 1)
                     as int;
 
             _status =
@@ -231,16 +258,19 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
 
           setState(() {
             _searching = false;
-            _status =
-                'Search cancelled';
             _playersWaiting = 0;
+            _status = 'Search cancelled';
           });
           break;
       }
-    } catch (_) {
+    } catch (e) {
       // Ignore invalid messages.
     }
   }
+
+  // ------------------------------------------------------------
+  // MATCH FOUND
+  // ------------------------------------------------------------
 
   void _handleMatchFound(
     Map<String, dynamic> data,
@@ -253,23 +283,21 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     final names = <String>[];
     final bots = <bool>[];
 
-    for (final player in players) {
-      final map =
+    for (final item in players) {
+      final player =
           Map<String, dynamic>.from(
-        player as Map,
+        item as Map,
       );
 
-      names.add(
-        map['name']?.toString() ??
-            'Player',
-      );
+      final name =
+          player['name']?.toString() ??
+              'Player';
+
+      names.add(name);
 
       bots.add(
-        map['isBot'] == true ||
-            map['name']
-                    ?.toString()
-                    .startsWith('Bot') ==
-                true,
+        player['isBot'] == true ||
+            name.startsWith('Bot'),
       );
     }
 
@@ -277,6 +305,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       names.add(
         'Player ${names.length + 1}',
       );
+
       bots.add(false);
     }
 
@@ -295,10 +324,20 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
           bots.take(4).toList();
 
       _playersWaiting = 4;
+
+      _scores = [0, 0, 0, 0];
+
+      _myHand = [];
+
+      _trick = [];
     });
 
     _showMatchFound(data);
   }
+
+  // ------------------------------------------------------------
+  // HAND
+  // ------------------------------------------------------------
 
   void _handleHand(
     Map<String, dynamic> data,
@@ -315,14 +354,21 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       );
     }).toList();
 
+    // Sort only for display.
+    // This does NOT restrict which card can be played.
     Rules.sortHand(hand);
 
     if (!mounted) return;
 
     setState(() {
       _myHand = hand;
+      _pendingCard = null;
     });
   }
+
+  // ------------------------------------------------------------
+  // DEAL START
+  // ------------------------------------------------------------
 
   void _handleDealStart(
     Map<String, dynamic> data,
@@ -337,14 +383,14 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
 
     setState(() {
       _dealNumber =
-          (data['dealNumber'] ?? 1)
-              as int;
+          (data['dealNumber'] ?? 1) as int;
 
       _currentSeat =
-          (data['currentSeat'] ?? 0)
-              as int;
+          (data['currentSeat'] ?? 0) as int;
 
       _trick = [];
+
+      _pendingCard = null;
 
       if (names != null &&
           names.length >= 4) {
@@ -367,12 +413,13 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
             .toList();
       }
 
-      _status =
-          _currentSeat == _mySeat
-              ? 'Your turn'
-              : '${_playerNames[_currentSeat]} is playing';
+      _updateTurnStatus();
     });
   }
+
+  // ------------------------------------------------------------
+  // CARD PLAYED
+  // ------------------------------------------------------------
 
   void _handlePlayed(
     Map<String, dynamic> data,
@@ -393,12 +440,17 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       _trick = trick;
 
       _currentSeat =
-          (data['currentSeat'] ?? 0)
-              as int;
+          (data['currentSeat'] ?? 0) as int;
+
+      _pendingCard = null;
 
       _updateTurnStatus();
     });
   }
+
+  // ------------------------------------------------------------
+  // TRICK RESULT
+  // ------------------------------------------------------------
 
   void _handleTrickResult(
     Map<String, dynamic> data,
@@ -431,20 +483,15 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       }
 
       _currentSeat =
-          (data['currentSeat'] ?? 0)
-              as int;
+          (data['currentSeat'] ?? 0) as int;
 
       _pendingCard = null;
 
       _updateTurnStatus();
     });
 
-    // Clear completed trick after a short
-    // delay so the cards can be seen.
     Future.delayed(
-      const Duration(
-        milliseconds: 1200,
-      ),
+      const Duration(milliseconds: 1200),
       () {
         if (!mounted || !_inGame) {
           return;
@@ -457,6 +504,51 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
+  // ------------------------------------------------------------
+  // PLAY CARD
+  // ------------------------------------------------------------
+
+  void _playCard(
+    PlayingCard card,
+  ) {
+    if (!_inGame) return;
+
+    // Only the player whose turn it is
+    // can play.
+    if (_currentSeat != _mySeat) {
+      return;
+    }
+
+    // IMPORTANT:
+    // There is NO suit restriction here.
+    //
+    // Any card can be played:
+    // Hearts
+    // Diamonds
+    // Clubs
+    // Spades
+    //
+    // The server will receive the selected card.
+
+    setState(() {
+      _myHand.remove(card);
+
+      _pendingCard = card;
+
+      _status =
+          'Waiting for other players...';
+    });
+
+    _send({
+      'type': 'play',
+      'card': card.toJson(),
+    });
+  }
+
+  // ------------------------------------------------------------
+  // SERVER ERROR
+  // ------------------------------------------------------------
+
   void _handleServerError(
     Map<String, dynamic> data,
   ) {
@@ -464,6 +556,8 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
         data['message']?.toString() ??
             'Invalid move.';
 
+    // If the server rejected the card,
+    // put it back into our hand.
     if (_pendingCard != null) {
       final card = _pendingCard!;
 
@@ -485,7 +579,13 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
         content: Text(message),
       ),
     );
+
+    _updateTurnStatus();
   }
+
+  // ------------------------------------------------------------
+  // GAME OVER
+  // ------------------------------------------------------------
 
   void _handleGameOver(
     Map<String, dynamic> data,
@@ -514,16 +614,19 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     if (players != null &&
         players.length >= 4) {
       _playerNames =
-          players.map((item) {
-        final map =
-            Map<String, dynamic>.from(
-          item as Map,
-        );
+          players
+              .map((item) {
+                final map =
+                    Map<String, dynamic>.from(
+                  item as Map,
+                );
 
-        return map['name']
-                ?.toString() ??
-            'Player';
-      }).take(4).toList();
+                return map['name']
+                        ?.toString() ??
+                    'Player';
+              })
+              .take(4)
+              .toList();
     }
 
     setState(() {
@@ -536,94 +639,26 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
+  // ------------------------------------------------------------
+  // TURN STATUS
+  // ------------------------------------------------------------
+
   void _updateTurnStatus() {
-    if (_currentSeat ==
-        _mySeat) {
+    if (_currentSeat == _mySeat) {
       _status = 'Your turn';
-    } else {
+    } else if (_currentSeat >= 0 &&
+        _currentSeat <
+            _playerNames.length) {
       _status =
           '${_playerNames[_currentSeat]} is playing';
+    } else {
+      _status = 'Waiting...';
     }
   }
 
-  void _send(
-    Map<String, dynamic> data,
-  ) {
-    _channel?.sink.add(
-      jsonEncode(data),
-    );
-  }
-
-  void _playCard(
-    PlayingCard card,
-  ) {
-    if (!_inGame) return;
-
-    if (_currentSeat !=
-        _mySeat) {
-      return;
-    }
-
-    final ledSuit =
-        _trick.isEmpty
-            ? null
-            : PlayingCard.fromJson(
-                Map<String, dynamic>.from(
-                  _trick.first['card']
-                      as Map,
-                ),
-              ).suit;
-
-    final legal =
-        Rules.legalCards(
-      _myHand,
-      ledSuit,
-    );
-
-    if (!legal.contains(card)) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            'You must follow the first suit if possible.',
-          ),
-          duration:
-              Duration(seconds: 1),
-        ),
-      );
-
-      return;
-    }
-
-    // Remove locally immediately.
-    setState(() {
-      _myHand.remove(card);
-      _pendingCard = card;
-      _status =
-          'Waiting for other players...';
-    });
-
-    _send({
-      'type': 'play',
-      'card': card.toJson(),
-    });
-  }
-
-  void _cancelSearch() {
-    _send({
-      'type': 'cancel_search',
-    });
-
-    _channel?.sink.close();
-
-    setState(() {
-      _searching = false;
-      _connected = false;
-      _playersWaiting = 0;
-      _status =
-          'Search cancelled';
-    });
-  }
+  // ------------------------------------------------------------
+  // MATCH FOUND DIALOG
+  // ------------------------------------------------------------
 
   void _showMatchFound(
     Map<String, dynamic> data,
@@ -688,6 +723,10 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       },
     );
   }
+
+  // ------------------------------------------------------------
+  // GAME OVER DIALOG
+  // ------------------------------------------------------------
 
   void _showGameOver(
     String winnerName,
@@ -780,6 +819,10 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
+  // ------------------------------------------------------------
+  // DISCONNECTED
+  // ------------------------------------------------------------
+
   void _showDisconnected(
     String message,
   ) {
@@ -798,13 +841,18 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
                   dialogContext,
                 );
               },
-              child: const Text('OK'),
+              child:
+                  const Text('OK'),
             ),
           ],
         );
       },
     );
   }
+
+  // ------------------------------------------------------------
+  // OPPONENT
+  // ------------------------------------------------------------
 
   Widget _buildOpponent(
     int seat,
@@ -895,6 +943,10 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
+  // ------------------------------------------------------------
+  // CARD ON TABLE
+  // ------------------------------------------------------------
+
   Widget _buildTrickCard(
     int seat,
   ) {
@@ -926,24 +978,13 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
-  Widget _buildHand() {
-    final ledSuit =
-        _trick.isEmpty
-            ? null
-            : PlayingCard.fromJson(
-                Map<String, dynamic>.from(
-                  _trick.first['card']
-                      as Map,
-                ),
-              ).suit;
+  // ------------------------------------------------------------
+  // MY HAND
+  // ------------------------------------------------------------
 
-    final legal =
-        _currentSeat == _mySeat
-            ? Rules.legalCards(
-                _myHand,
-                ledSuit,
-              )
-            : <PlayingCard>[];
+  Widget _buildHand() {
+    final canPlay =
+        _currentSeat == _mySeat;
 
     return SizedBox(
       height: 105,
@@ -961,9 +1002,6 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
           final card =
               _myHand[index];
 
-          final canPlay =
-              legal.contains(card);
-
           return Padding(
             padding:
                 const EdgeInsets
@@ -974,10 +1012,11 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
               card: card,
               width: 52,
               height: 74,
-              dimmed:
-                  _currentSeat ==
-                          _mySeat &&
-                      !canPlay,
+
+              // ALL cards are active
+              // when it is our turn.
+              dimmed: !canPlay,
+
               onTap: canPlay
                   ? () =>
                       _playCard(card)
@@ -988,6 +1027,67 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       ),
     );
   }
+
+  // ------------------------------------------------------------
+  // TRICK AREA
+  // ------------------------------------------------------------
+
+  Widget _buildTrickArea() {
+    return Stack(
+      alignment:
+          Alignment.center,
+      children: [
+        Align(
+          alignment:
+              const Alignment(
+            0,
+            0.75,
+          ),
+          child:
+              _buildTrickCard(
+            _mySeat,
+          ),
+        ),
+        Align(
+          alignment:
+              const Alignment(
+            0.75,
+            0,
+          ),
+          child:
+              _buildTrickCard(
+            (_mySeat + 1) % 4,
+          ),
+        ),
+        Align(
+          alignment:
+              const Alignment(
+            0,
+            -0.75,
+          ),
+          child:
+              _buildTrickCard(
+            (_mySeat + 2) % 4,
+          ),
+        ),
+        Align(
+          alignment:
+              const Alignment(
+            -0.75,
+            0,
+          ),
+          child:
+              _buildTrickCard(
+            (_mySeat + 3) % 4,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ------------------------------------------------------------
+  // GAME TABLE
+  // ------------------------------------------------------------
 
   Widget _buildTable() {
     return Scaffold(
@@ -1007,7 +1107,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
               height: 8,
             ),
 
-            // Score bar
+            // SCORE BAR
             SingleChildScrollView(
               scrollDirection:
                   Axis.horizontal,
@@ -1086,7 +1186,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
               height: 10,
             ),
 
-            // Top player
+            // TOP PLAYER
             _buildOpponent(
               (_mySeat + 2) % 4,
             ),
@@ -1095,7 +1195,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
               height: 8,
             ),
 
-            // Middle table
+            // TABLE
             Expanded(
               child: Row(
                 children: [
@@ -1146,7 +1246,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
               ),
             ),
 
-            // My player
+            // MY PLAYER
             Container(
               padding:
                   const EdgeInsets
@@ -1177,65 +1277,9 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     );
   }
 
-  Widget _buildTrickArea() {
-    return Stack(
-      alignment:
-          Alignment.center,
-      children: [
-        _buildPlayedPosition(
-          0,
-          _buildTrickCard(
-            _mySeat,
-          ),
-          const Alignment(
-            0,
-            0.75,
-          ),
-        ),
-        _buildPlayedPosition(
-          1,
-          _buildTrickCard(
-            (_mySeat + 1) % 4,
-          ),
-          const Alignment(
-            0.75,
-            0,
-          ),
-        ),
-        _buildPlayedPosition(
-          2,
-          _buildTrickCard(
-            (_mySeat + 2) % 4,
-          ),
-          const Alignment(
-            0,
-            -0.75,
-          ),
-        ),
-        _buildPlayedPosition(
-          3,
-          _buildTrickCard(
-            (_mySeat + 3) % 4,
-          ),
-          const Alignment(
-            -0.75,
-            0,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPlayedPosition(
-    int index,
-    Widget child,
-    Alignment alignment,
-  ) {
-    return Align(
-      alignment: alignment,
-      child: child,
-    );
-  }
+  // ------------------------------------------------------------
+  // MAIN BUILD
+  // ------------------------------------------------------------
 
   @override
   Widget build(
