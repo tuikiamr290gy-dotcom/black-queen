@@ -242,7 +242,7 @@ class _GamePageState extends State<GamePage> {
     );
   }
 
-  /// Builds a fanned hand of cards like a real card game
+  /// Builds a fanned hand of cards like a real card game with all cards visible
   Widget _buildCardHand() {
     final hand = game.hands[0];
     if (hand.isEmpty) return const SizedBox.shrink();
@@ -251,27 +251,33 @@ class _GamePageState extends State<GamePage> {
     final legal = canPlay ? game.legalMoves(0) : <PlayingCard>[];
 
     return SizedBox(
-      height: 110,
-      child: Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          // Draw cards in a fanned pattern
-          for (int i = 0; i < hand.length; i++)
-            Positioned(
-              bottom: 0,
-              left: (i - hand.length / 2) * 26.0, // Spread cards horizontally
-              child: Transform.rotate(
-                angle: (i - hand.length / 2) * 0.085, // Slight rotation for fan effect
-                child: CardView(
-                  card: hand[i],
-                  width: 48,
-                  height: 68,
-                  dimmed: canPlay && !legal.contains(hand[i]),
-                  onTap: () => _onTapCard(hand[i]),
+      height: 100,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              // Draw cards in a fanned pattern with proper spacing
+              for (int i = 0; i < hand.length; i++)
+                Positioned(
+                  bottom: 0,
+                  left: i * 35.0, // More space between cards so all 13 are visible
+                  child: Transform.rotate(
+                    angle: (i - hand.length / 2) * 0.06, // Subtle rotation
+                    child: CardView(
+                      card: hand[i],
+                      width: 48,
+                      height: 68,
+                      dimmed: canPlay && !legal.contains(hand[i]),
+                      onTap: () => _onTapCard(hand[i]),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -383,7 +389,7 @@ class _GamePageState extends State<GamePage> {
                         style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 12, left: 20, right: 20),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: _buildCardHand(),
                   ),
                 ],
