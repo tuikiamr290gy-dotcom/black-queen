@@ -448,61 +448,191 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
     });
   }
 
-  // ------------------------------------------------------------
-  // TRICK RESULT
-  // ------------------------------------------------------------
+  /// ------------------------------------------------------------
+// TRICK RESULT
+// ------------------------------------------------------------
 
-  void _handleTrickResult(
-    Map<String, dynamic> data,
-  ) {
-    final rawTrick =
-        data['trick'] as List? ?? [];
+void _handleTrickResult(
+  Map<String, dynamic> data,
+) {
+  final rawTrick =
+      data['trick'] as List? ?? [];
 
-    final trick =
-        rawTrick.map((item) {
-      return Map<String, dynamic>.from(
-        item as Map,
-      );
-    }).toList();
-
-    final scores =
-        (data['scores'] as List? ?? [])
-            .map(
-              (e) => (e as num).toInt(),
-            )
-            .toList();
-
-    if (!mounted) return;
-
-    setState(() {
-      _trick = trick;
-
-      if (scores.length >= 4) {
-        _scores =
-            scores.take(4).toList();
-      }
-
-      _currentSeat =
-          (data['currentSeat'] ?? 0) as int;
-
-      _pendingCard = null;
-
-      _updateTurnStatus();
-    });
-
-    Future.delayed(
-      const Duration(milliseconds: 1200),
-      () {
-        if (!mounted || !_inGame) {
-          return;
-        }
-
-        setState(() {
-          _trick = [];
-        });
-      },
+  final trick =
+      rawTrick.map((item) {
+    return Map<String, dynamic>.from(
+      item as Map,
     );
+  }).toList();
+
+  final scores =
+      (data['scores'] as List? ?? [])
+          .map(
+            (e) => (e as num).toInt(),
+          )
+          .toList();
+
+  if (!mounted) return;
+
+  setState(() {
+    _trick = trick;
+
+    if (scores.length >= 4) {
+      _scores = scores.take(4).toList();
+    }
+
+    _currentSeat =
+        (data['currentSeat'] ?? 0) as int;
+
+    _pendingCard = null;
+
+    _updateTurnStatus();
+  });
+
+  // Do NOT clear the trick with a local timer.
+  // The server controls when the next trick starts.
+}
+
+
+// ------------------------------------------------------------
+// CARD RULES
+// ------------------------------------------------------------
+
+bool _hasLeadSuit() {
+  if (_trick.isEmpty) {
+    return false;
   }
+
+  final firstCard = _trick.first['card'];
+
+  if (firstCard is! Map) {
+    return false;
+  }
+
+  final leadSuit = firstCard['s'];
+
+  return _myHand.any(
+    (card) => card.s == leadSuit,
+  );
+}
+
+bool _isLegalCard(PlayingCard card) {
+  // First card of the trick:
+  // any suit is allowed.
+  if (_trick.isEmpty) {
+    return true;
+  }
+
+  final firstCard = _trick.first['card'];
+
+  if (firstCard is! Map) {
+    return true;
+  }
+
+  final leadSuit = firstCard['s'];
+
+  // If we have the lead suit,
+  // we MUST play that suit.
+  if (_hasLeadSuit()) {
+    return card.s == leadSuit;
+  }
+
+  // If we have no lead-suit card,
+  // we may play any card.
+  return true;
+}
+
+
+// ------------------------------------------------------------
+// PLAY CARD
+// ------------------------------------------------------------
+
+void _playCard(
+  PlayingCard card,
+) {
+  if (!_inGame) return;
+
+  if (_currentSeat != _mySeat) {
+    return;
+  }
+
+  if (!_isLegalCard(card)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'You must follow the lead suit if you have one.',
+        ),
+      ),
+    );
+    return;
+  }
+
+  setState(() {
+    _myHand.remove(card);
+
+    _pendingCard = card;
+
+    _status =
+        'Waiting for other players...';
+  });
+
+  _send({
+    'type': 'play',
+    'card': card.toJson(),
+  });
+}
+
+
+// ------------------------------------------------------------
+// MY HAND
+// ------------------------------------------------------------
+
+Widget _buildHand() {
+  final canPlay =
+      _currentSeat == _mySeat;
+
+  return SizedBox(
+    height: 105,
+    child: ListView.builder(
+      scrollDirection:
+          Axis.horizontal,
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 8,
+      ),
+      itemCount:
+          _myHand.length,
+      itemBuilder:
+          (context, index) {
+        final card =
+            _myHand[index];
+
+        final legal =
+            canPlay &&
+            _isLegalCard(card);
+
+        return Padding(
+          padding:
+              const EdgeInsets.symmetric(
+            horizontal: 2,
+          ),
+          child: CardView(
+            card: card,
+            width: 52,
+            height: 74,
+
+            // Illegal cards are disabled.
+            dimmed: !legal,
+
+            onTap: legal
+                ? () => _playCard(card)
+                : null,
+          ),
+        );
+      },
+    ),
+  );
+}
 
   // ------------------------------------------------------------
   // PLAY CARD
