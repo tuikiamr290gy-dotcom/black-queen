@@ -1,55 +1,53 @@
-name: Build APK
+name: Build and Deploy Web
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
+      - name: Add web support
+        run: flutter create --platforms=web --project-name black_queen .
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Generate Android project
-        run: |
-          rm -rf android
-          flutter create --org com.example --project-name black_queen --platforms=android .
+      - name: Build web
+        run: flutter build web --release --base-href "/black-queen/"
 
-      - name: Use fixed signing key
-        run: |
-          mkdir -p ~/.android
-          cp keys/debug.keystore ~/.android/debug.keystore
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
-      - name: Build APK
-        run: |
-          J=keys/google-services.json
-          flutter build apk --debug \
-            --dart-define=AND_API_KEY=$(jq -r '.client[0].api_key[0].current_key' $J) \
-            --dart-define=AND_APP_ID=$(jq -r '.client[0].client_info.mobilesdk_app_id' $J) \
-            --dart-define=AND_SENDER_ID=$(jq -r '.project_info.project_number' $J) \
-            --dart-define=AND_PROJECT_ID=$(jq -r '.project_info.project_id' $J) \
-            --dart-define=AND_BUCKET=$(jq -r '.project_info.storage_bucket' $J)
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: black-queen-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
