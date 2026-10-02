@@ -13,7 +13,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBfrfn21Fz5YWrXf93GL1dZX0gP7pjd0s4',
+    apiKey: 'AIzaSyBfrfn21Fz5YWrXf93GL1dZxOgP7pjd0s4',
     appId: '1:811453390937:web:107733ed0d91760448d148',
     messagingSenderId: '811453390937',
     projectId: 'black-queen-c218e',
