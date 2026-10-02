@@ -6,9 +6,12 @@ class DefaultFirebaseOptions {
     if (kIsWeb) {
       return web;
     }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return android;
+    }
 
     throw UnsupportedError(
-      'Firebase is currently configured for Web only.',
+      'Firebase is not configured for this platform.',
     );
   }
 
@@ -20,5 +23,14 @@ class DefaultFirebaseOptions {
     authDomain: 'black-queen-c218e.firebaseapp.com',
     storageBucket: 'black-queen-c218e.firebasestorage.app',
     measurementId: 'G-64K1E0W1V6',
+  );
+
+  // Filled in automatically by the workflow from keys/google-services.json
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: String.fromEnvironment('AND_API_KEY'),
+    appId: String.fromEnvironment('AND_APP_ID'),
+    messagingSenderId: String.fromEnvironment('AND_SENDER_ID'),
+    projectId: String.fromEnvironment('AND_PROJECT_ID'),
+    storageBucket: String.fromEnvironment('AND_BUCKET'),
   );
 }
