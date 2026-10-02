@@ -31,10 +31,22 @@ jobs:
       - name: Generate Android project
         run: |
           rm -rf android
-          flutter create --project-name black_queen --platforms=android .
+          flutter create --org com.example --project-name black_queen --platforms=android .
+
+      - name: Use fixed signing key
+        run: |
+          mkdir -p ~/.android
+          cp keys/debug.keystore ~/.android/debug.keystore
 
       - name: Build APK
-        run: flutter build apk --debug
+        run: |
+          J=keys/google-services.json
+          flutter build apk --debug \
+            --dart-define=AND_API_KEY=$(jq -r '.client[0].api_key[0].current_key' $J) \
+            --dart-define=AND_APP_ID=$(jq -r '.client[0].client_info.mobilesdk_app_id' $J) \
+            --dart-define=AND_SENDER_ID=$(jq -r '.project_info.project_number' $J) \
+            --dart-define=AND_PROJECT_ID=$(jq -r '.project_info.project_id' $J) \
+            --dart-define=AND_BUCKET=$(jq -r '.project_info.storage_bucket' $J)
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
