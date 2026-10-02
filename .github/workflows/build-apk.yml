@@ -29,7 +29,9 @@ jobs:
         run: flutter pub get
 
       - name: Generate Android project
-        run: flutter create --project-name black_queen --platforms=android .
+        run: |
+          rm -rf android
+          flutter create --project-name black_queen --platforms=android .
 
       - name: Build APK
         run: flutter build apk --debug
