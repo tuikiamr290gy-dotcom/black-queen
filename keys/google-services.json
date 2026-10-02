@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "811453390937",
+    "project_id": "black-queen-c218e",
+    "storage_bucket": "black-queen-c218e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:811453390937:android:e2c0f87a61e2f01d48d148",
+        "android_client_info": {
+          "package_name": "com.example.black_queen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "811453390937-hjg8uttb7ibj4cjmd4jvjlb322pidl74.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.black_queen",
+            "certificate_hash": "0f66cf006694c09b39a20f3013d73579d9f15605"
+          }
+        },
+        {
+          "client_id": "811453390937-pgdmv96gsghb0eolmb0g9ah493dq3iou.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUUs0VdI3D293eIOVj-tD6kySM5kVr-aw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "811453390937-pgdmv96gsghb0eolmb0g9ah493dq3iou.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
