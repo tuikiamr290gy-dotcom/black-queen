@@ -483,12 +483,14 @@ class _AccountPageState extends State<AccountPage> {
                           text: 'CONTINUE WITH GOOGLE',
                           onTap: () => _socialLogin('Google'),
                         ),
-                        const SizedBox(height: 10),
-                        _loginButton(
-                          icon: Icons.facebook_rounded,
-                          text: 'CONTINUE WITH FACEBOOK',
-                          onTap: () => _socialLogin('Facebook'),
-                        ),
+                                                if (kIsWeb) ...[
+                          const SizedBox(height: 10),
+                          _loginButton(
+                            icon: Icons.facebook_rounded,
+                            text: 'CONTINUE WITH FACEBOOK',
+                            onTap: () => _socialLogin('Facebook'),
+                          ),
+                        ],
 
                         const SizedBox(height: 20),
 
