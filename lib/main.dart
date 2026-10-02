@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 import 'home.dart';
 import 'bot_player.dart';
@@ -10,8 +12,11 @@ import 'game_logic.dart';
 import 'multiplayer_ui.dart';
 import 'scoreboard_storage.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+  options: DefaultFirebaseOptions.currentPlatform,
+);
 
   if (!kIsWeb) {
     // Menus/lobbies open in portrait. Individual game tables switch
