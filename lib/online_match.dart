@@ -9,6 +9,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'game_logic.dart';
 import 'card_view.dart';
 import 'scoreboard_storage.dart';
+import 'account_storage.dart';
 
 class OnlineMatchPage extends StatefulWidget {
   const OnlineMatchPage({super.key});
@@ -30,6 +31,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
   String _status = 'Enter your name';
 
   int _playersWaiting = 0;
+  List<String> _waitingNames = [];
 
   bool _searching = false;
   bool _connected = false;
@@ -68,12 +70,21 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
   @override
   void initState() {
     super.initState();
+    _loadSavedName();
     if (!kIsWeb) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
       ]);
     }
+  }
+
+  Future<void> _loadSavedName() async {
+    final savedName = await AccountStorage.loadName();
+    if (!mounted || savedName == null) return;
+    setState(() {
+      _nameController.text = savedName;
+    });
   }
 
   @override
@@ -105,10 +116,13 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       return;
     }
 
+    unawaited(AccountStorage.saveGuestName(name));
+
     setState(() {
       _searching = true;
       _status = 'Connecting to server...';
       _playersWaiting = 0;
+      _waitingNames = [];
     });
 
     try {
@@ -193,6 +207,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
       _searching = false;
       _connected = false;
       _playersWaiting = 0;
+      _waitingNames = [];
       _status = 'Search cancelled';
     });
   }
@@ -222,11 +237,14 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
             _searching = true;
 
             _playersWaiting =
-                (data['playersWaiting'] ?? 1)
-                    as int;
+                (data['playersWaiting'] ?? 1) as int;
 
-            _status =
-                'Searching for players...';
+            final rawNames = data['playerNames'] as List?;
+            _waitingNames = rawNames == null
+                ? <String>[]
+                : rawNames.map((e) => e.toString()).toList();
+
+            _status = 'Waiting for players...';
           });
           break;
 
@@ -278,6 +296,7 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
           setState(() {
             _searching = false;
             _playersWaiting = 0;
+            _waitingNames = [];
             _status = 'Search cancelled';
           });
           break;
@@ -1425,6 +1444,9 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
                         _nameController,
                     enabled:
                         !_searching,
+                    onChanged: (_) {
+                      if (mounted) setState(() {});
+                    },
                     textInputAction:
                         TextInputAction
                             .done,
@@ -1466,22 +1488,81 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
                       height: 24,
                     ),
 
-                    Text(
-                      'Players found: $_playersWaiting / 4',
-                      style:
-                          const TextStyle(
-                        color:
-                            Colors.white,
+                    const Text(
+                      'PLAYERS WAITING',
+                      style: TextStyle(
+                        color: Colors.white,
                         fontSize: 20,
-                        fontWeight:
-                            FontWeight
-                                .bold,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.1,
                       ),
                     ),
 
-                    const SizedBox(
-                      height: 25,
+                    const SizedBox(height: 12),
+
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        children: [
+                          for (int i = 0; i < 4; i++)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 5),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    i < _waitingNames.length
+                                        ? Icons.check_circle
+                                        : Icons.radio_button_unchecked,
+                                    color: i < _waitingNames.length
+                                        ? Colors.greenAccent
+                                        : Colors.white54,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      i < _waitingNames.length
+                                          ? _waitingNames[i]
+                                          : 'Waiting for player ${i + 1}...',
+                                      style: TextStyle(
+                                        color: i < _waitingNames.length
+                                            ? Colors.white
+                                            : Colors.white54,
+                                        fontSize: 16,
+                                        fontWeight: i < _waitingNames.length
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
+
+                    const SizedBox(height: 10),
+
+                    Text(
+                      '$_playersWaiting / 4 players',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15,
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
 
                     SizedBox(
                       width:
@@ -1518,8 +1599,9 @@ class _OnlineMatchPageState extends State<OnlineMatchPage> {
                       child:
                           FilledButton
                               .icon(
-                        onPressed:
-                            _findMatch,
+                        onPressed: _nameController.text.trim().isEmpty
+                            ? null
+                            : _findMatch,
                         icon:
                             const Icon(
                           Icons.search,
