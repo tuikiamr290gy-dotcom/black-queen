@@ -47,10 +47,13 @@ jobs:
             --dart-define=AND_SENDER_ID=$(jq -r '.project_info.project_number' $J) \
             --dart-define=AND_PROJECT_ID=$(jq -r '.project_info.project_id' $J) \
             --dart-define=AND_BUCKET=$(jq -r '.project_info.storage_bucket' $J)
-     
+           - name: Show APK signature
+   
       - name: Show APK signature
-        run: keytool -printcert -jarfile build/app/outputs/flutter-apk/app-debug.apk | grep -E "SHA1|SHA256"
-
+        run: |
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -1)
+          $APKSIGNER verify --print-certs build/app/outputs/flutter-apk/app-debug.apk | grep -i digest || true
+    
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
