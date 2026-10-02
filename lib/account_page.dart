@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import 'account_storage.dart';
 
 class AccountPage extends StatefulWidget {
@@ -169,15 +169,45 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  void _socialLogin(String provider) {
+  Future<void> _socialLogin(String provider) async {
+  try {
+    final auth = FirebaseAuth.instance;
+    UserCredential result;
+
+    if (provider == 'Google') {
+      final googleProvider = GoogleAuthProvider();
+      result = await auth.signInWithPopup(googleProvider);
+    } else {
+      final facebookProvider = FacebookAuthProvider();
+      result = await auth.signInWithPopup(facebookProvider);
+    }
+
+    final user = result.user;
+
+    if (!mounted || user == null) return;
+
+    setState(() {
+      _playerName = user.displayName ?? user.email ?? 'Player';
+      _accountType = provider;
+      _nameController.text = _playerName;
+    });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          '$provider login will be connected with Firebase.',
-        ),
+        content: Text('$provider login successful!'),
         behavior: SnackBarBehavior.floating,
       ),
     );
+  } catch (e) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$provider login failed: $e'),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
   }
 
   Future<void> _signOut() async {
