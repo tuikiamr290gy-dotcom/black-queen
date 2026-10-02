@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'account_storage.dart';
@@ -175,12 +176,12 @@ class _AccountPageState extends State<AccountPage> {
     final auth = FirebaseAuth.instance;
     UserCredential result;
 
-    if (provider == 'Google') {
-      final googleProvider = GoogleAuthProvider();
-      result = await auth.signInWithPopup(googleProvider);
+        final AuthProvider authProvider =
+        provider == 'Google' ? GoogleAuthProvider() : FacebookAuthProvider();
+    if (kIsWeb) {
+      result = await auth.signInWithPopup(authProvider);
     } else {
-      final facebookProvider = FacebookAuthProvider();
-      result = await auth.signInWithPopup(facebookProvider);
+      result = await auth.signInWithProvider(authProvider);
     }
 
     final user = result.user;
