@@ -1,53 +1,21 @@
-name: Build and Deploy Web
+name: black_queen
+description: Black Queen card game
+publish_to: 'none'
+version: 1.0.0+1
 
-on:
-  push:
-    branches: [ main ]
+environment:
+  sdk: '>=3.4.0 <5.0.0'
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+dependencies:
+  flutter:
+    sdk: flutter
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  web_socket_channel: ^3.0.3
+  shared_preferences: ^2.3.3
+  firebase_core: ^4.2.1
+  firebase_auth: ^6.1.0
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Add web support
-        run: flutter create --platforms=web --project-name black_queen .
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Build web
-        run: flutter build web --release --base-href "/black-queen/"
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: build/web
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/cards/
